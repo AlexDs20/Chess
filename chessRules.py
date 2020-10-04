@@ -175,21 +175,21 @@ class Knight(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
-        if x+1 <= 7 and y+2 <= 7 and board[x+1, y+2] == 0:
+        if x+1 <= 7 and y+2 <= 7 and array[x+1, y+2] is None:
             possibleMoves.append([x+1, y+2])
-        if x-1 >= 0 and y+2 <= 7 and board[x-1, y+2] == 0:
+        if x-1 >= 0 and y+2 <= 7 and array[x-1, y+2] is None:
             possibleMoves.append([x-1, y+2])
-        if x+1 <= 7 and y-2 >= 0 and board[x+1, y-2] == 0:
+        if x+1 <= 7 and y-2 >= 0 and array[x+1, y-2] is None:
             possibleMoves.append([x+1, y-2])
-        if x-1 >= 0 and y-2 >= 0 and board[x-1, y-2] == 0:
+        if x-1 >= 0 and y-2 >= 0 and array[x-1, y-2] is None:
             possibleMoves.append([x-1, y-2])
-        if x+2 <= 7 and y+1 <= 7 and board[x+2, y+1] == 0:
+        if x+2 <= 7 and y+1 <= 7 and array[x+2, y+1] is None:
             possibleMoves.append([x+2, y+1])
-        if x+2 <= 7 and y-1 >= 0 and board[x+2, y-1] == 0:
+        if x+2 <= 7 and y-1 >= 0 and array[x+2, y-1] is None:
             possibleMoves.append([x+2, y-1])
-        if x-2 >= 0 and y+1 <= 7 and board[x-2, y+1] == 0:
+        if x-2 >= 0 and y+1 <= 7 and array[x-2, y+1] is None:
             possibleMoves.append([x-2, y+1])
-        if x-2 >= 0 and y-1 >= 0 and board[x-2, y-1] == 0:
+        if x-2 >= 0 and y-1 >= 0 and array[x-2, y-1] is None:
             possibleMoves.append([x-2, y-1])
         return possibleMoves
 
@@ -264,21 +264,21 @@ class King(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
-        if x+1 <= 7 and (board[x+1, y] == 0 or board[x+1, y].colour == self.otherColour):
+        if x+1 <= 7 and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x+1, y])
-        if x-1 >= 0 and board[x-1, y] == 0 or board[x+1, y].colour == self.otherColour:
+        if x-1 >= 0 and array[x-1, y] is None or array[x+1, y].colour == self.otherColour:
             possibleMoves.append([x-1, y])
-        if y+1 <= 7 and board[x, y+1] == 0 or board[x+1, y].colour == self.otherColour:
+        if y+1 <= 7 and array[x, y+1] is None or array[x+1, y].colour == self.otherColour:
             possibleMoves.append([x, y+1])
-        if y-1 >= 0 and board[x, y-1] == 0 or board[x+1, y].colour == self.otherColour:
+        if y-1 >= 0 and array[x, y-1] is None or array[x+1, y].colour == self.otherColour:
             possibleMoves.append([x, y-1])
-        if x+1 <= 7 and y+1 <= 7 and (board[x+1, y+1] == 0 or board[x+1, y].colour == self.otherColour):
+        if x+1 <= 7 and y+1 <= 7 and (array[x+1, y+1] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x+1, y+1])
-        if x+1 <= 7 and y-1 >= 0 and (board[x+1, y-1] == 0 or board[x+1, y].colour == self.otherColour):
+        if x+1 <= 7 and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x+1, y-1])
-        if x-1 >= 0 and y+1 <= 7 and (board[x-1, y+1] == 0 or board[x+1, y].colour == self.otherColour):
+        if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x-1, y+1])
-        if x-1 >= 0 and y-1 <= 7 and (board[x-1, y-1] == 0 or board[x+1, y].colour == self.otherColour):
+        if x-1 >= 0 and y-1 <= 7 and (array[x-1, y-1] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x-1, y-1])
         return possibleMoves
 

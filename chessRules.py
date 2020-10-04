@@ -38,6 +38,7 @@ class Board:
         if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
+            self.array[moveTo[0], moveTo[1]].coord = moveTo
 
     def print(self):
         checkerBoard = np.zeros([self.boardSize, self.boardSize])
@@ -62,13 +63,14 @@ class Board:
 
 
 class Piece:
+
     def __init__(self, coord, colour, board):
         self.colour = colour
-        self.otherColour = []
-        if self.colour == "black":
+        self.otherColour = None
+        if self.colour == "white":
+            self.otherColour = "black"
+        else:
             self.otherColour = "white"
-        elif self.colour == "white":
-            self.otherColour == "black"
 
         self.coord = coord
         self.board = board

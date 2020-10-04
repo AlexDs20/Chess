@@ -26,6 +26,7 @@ class GraphicsInterface():
 
         self.click = []
         self.realeased = []
+        self.selectedPiece = []
         # -----------
 
         # Interface
@@ -35,7 +36,7 @@ class GraphicsInterface():
 
         # Setup board
         self.createCheckerboard()
-        board = Board(self)
+        self.board = Board(self)
         # self.createPieces()
 
         # Click actions
@@ -77,20 +78,21 @@ class GraphicsInterface():
 
     def clicked(self, event):
         self.click = self.pixelToCoord(event.x, event.y)
+        self.selectedPiece = self.board.array[self.click[0], self.click[1]]
 
     def drag(self, event):
         x = self.click[0]
         y = self.click[1]
-        xMid, yMid = self.canvas.coords(self.Pieces[x, y])
-        self.canvas.move(self.Pieces[x, y], event.x-xMid, event.y-yMid)
+        xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
+        self.canvas.move(self.selectedPiece.Image, event.x-xMid, event.y-yMid)
 
     def released(self, event):
         self.released = self.pixelToCoord(event.x, event.y)
-        self.Pieces[self.released[0], self.released[1]] = self.Pieces[self.click[0], self.click[1]]
-        self.Pieces[self.click[0], self.click[1]] = None
+        self.board.array[self.released[0], self.released[1]] = self.board.array[self.click[0], self.click[1]]
+        self.board.array[self.click[0], self.click[1]] = None
         xs = -(event.x % self.squareSize) + self.squareSize/2
         ys = -(event.y % self.squareSize) + self.squareSize/2
-        self.canvas.move(self.Pieces[self.released[0], self.released[1]], xs, ys)
+        self.canvas.move(self.selectedPiece.Image, xs, ys)
 
 
 GraphicsInterface()

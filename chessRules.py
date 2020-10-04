@@ -62,16 +62,9 @@ class Board:
 
 
 class Piece:
-    coord = []
-    colour = []
-    otherColour = []
-    board = []
-    # Graphics
-    displayImage = []       # Created with PhotoImage
-    Image = []              # Created with canvas.create_image
-
     def __init__(self, coord, colour, board):
         self.colour = colour
+        self.otherColour = []
         if self.colour == "black":
             self.otherColour = "white"
         elif self.colour == "white":
@@ -79,6 +72,10 @@ class Piece:
 
         self.coord = coord
         self.board = board
+
+        # Graphics
+        self.displayImage = []       # Created with PhotoImage
+        self.Image = []              # Created with canvas.create_image
 
 
 class Pawn(Piece):

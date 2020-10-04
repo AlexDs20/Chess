@@ -1,16 +1,13 @@
 #!/bin/python3
-
+from pathlib import Path
 import numpy as np
 from tkinter import *
 
 
 class Board:
-    array = []
-    boardSize = []
-    info = []
-
-    def __init__(self, boardSize):
-        self.boardSize = boardSize
+    def __init__(self, UI):
+        self.boardSize = UI.boardSize
+        self.UI = UI
         self.initBoard()
         self.info = {"a": 0, "b": 1, "c": 2, "d": 3,
                      "e": 4, "f": 5, "g": 6, "h": 7}
@@ -69,6 +66,9 @@ class Piece:
     colour = []
     otherColour = []
     board = []
+    # Graphics
+    displayImage = []       # Created with PhotoImage
+    Image = []              # Created with canvas.create_image
 
     def __init__(self, coord, colour, board):
         self.colour = colour
@@ -84,6 +84,10 @@ class Piece:
 class Pawn(Piece):
     def __init__(self, coord, colour, board):
         Piece.__init__(self, coord, colour, board)
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Pawn.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
     def possibleMoves(self):
         possibleMoves = []
@@ -95,27 +99,30 @@ class Pawn(Piece):
                 possibleMoves.append([x, y+1])
             if y == 1 and array[x, y+2] is None:
                 possibleMoves.append([x, y+2])
-            if x >= 1 and isinstance(array[x-1, y+1], Piece)\
-                    and array[x-1, y+1].colour == "black":
+            if x >= 1 and isinstance(array[x-1, y+1], Piece) and array[x-1, y+1].colour == "black":
                 possibleMoves.append([x-1, y+1])
-            if x <= 6 and isinstance(array[x+1, y+1], Piece)\
-                    and array[x+1, y+1].colour == "black":
+            if x <= 6 and isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == "black":
                 possibleMoves.append([x+1, y+1])
         elif self.colour == "black":
             if array[x, y-1] is None:
                 possibleMoves.append([x, y-1])
             if y == 6 and array[x, y-2] is None:
                 possibleMoves.append([x, y-2])
-            if x >= 1 and isinstance(array[x-1, y-1], Piece)\
-                    and array[x-1, y-1].colour == "white":
+            if x >= 1 and isinstance(array[x-1, y-1], Piece) and array[x-1, y-1].colour == "white":
                 possibleMoves.append([x-1, y-1])
-            if x <= 6 and isinstance(array[x+1, y-1], Piece)\
-                    and array[x+1, y-1].colour == "white":
+            if x <= 6 and isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == "white":
                 possibleMoves.append([x+1, y-1])
         return possibleMoves
 
 
 class Rook(Piece):
+    def __init__(self, coord, colour, board):
+        Piece.__init__(self, coord, colour, board)
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Rook.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
+
     def possibleMoves(self):
         possibleMoves = []
         array = self.board.array
@@ -159,6 +166,13 @@ class Rook(Piece):
 
 
 class Knight(Piece):
+    def __init__(self, coord, colour, board):
+        Piece.__init__(self, coord, colour, board)
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Knight.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
+
     def possibleMoves(self):
         possibleMoves = []
         array = self.board.array
@@ -184,6 +198,13 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
+    def __init__(self, coord, colour, board):
+        Piece.__init__(self, coord, colour, board)
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Bishop.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
+
     def possibleMoves(self):
         possibleMoves = []
         array = self.board.array
@@ -234,6 +255,10 @@ class King(Piece):
     def __init__(self, coord, colour, board):
         Piece.__init__(self, coord, colour, board)
         self.inCheck = False
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'King.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
     def possibleMoves(self):
         # TODO: Castling
@@ -262,6 +287,13 @@ class King(Piece):
 
 
 class Queen(Piece):
+    def __init__(self, coord, colour, board):
+        Piece.__init__(self, coord, colour, board)
+        # Graphics
+        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Queen.png')
+        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
+        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
+
     def possibleMoves(self):
         moveRook = Rook(self.coord, self.colour, self.board).possibleMoves()
         moveBishop = Bishop(self.coord, self.colour, self.board).possibleMoves()
@@ -270,15 +302,6 @@ class Queen(Piece):
         return moveRook
 
 
-boardSize = 8
-board = Board(boardSize)
-
-
-x = 3
-y = 5
-board.array[x, y] = Pawn([x, y], "white", board)
-pM = board.array[x, y].possibleMoves()
-pM
-pM[0]
-board.move([x, y], pM[0])
-board.print()
+# boardSize = 8
+# pathImages = "/home/alexandre/Documents/Chess/images/"
+# board = Board(boardSize, pathImages, canvas)

@@ -8,6 +8,8 @@ What is done:
 
 What needs to be done:
 - [ ] Link graphics to game rules
+- [ ] Make svg files for each of the pieces
+- [ ] Make the graphics scaling with the window
 - [ ] Castle
 - [ ] Checks
 - [ ] Checkmate

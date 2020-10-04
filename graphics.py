@@ -1,5 +1,7 @@
+#!/bin/python3
 import numpy as np
 from tkinter import *
+from chessRules import *
 
 
 class GraphicsInterface():
@@ -17,6 +19,7 @@ class GraphicsInterface():
         self.shiftY = 64
         self.color1 = '#E3C3A5'
         self.color2 = '#794532'
+        self.pathImages = '/home/alexandre/Documents/Chess/images/'
 
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
@@ -32,7 +35,8 @@ class GraphicsInterface():
 
         # Setup board
         self.createCheckerboard()
-        self.createPieces()
+        board = Board(self)
+        # self.createPieces()
 
         # Click actions
         self.canvas.bind("<Button-1>", self.clicked)

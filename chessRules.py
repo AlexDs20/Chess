@@ -177,21 +177,21 @@ class Knight(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
-        if x+1 <= 7 and y+2 <= 7 and array[x+1, y+2] is None:
+        if x+1 <= 7 and y+2 <= 7 and (array[x+1, y+2] is None or array[x+1, y+2].colour == self.otherColour):
             possibleMoves.append([x+1, y+2])
-        if x-1 >= 0 and y+2 <= 7 and array[x-1, y+2] is None:
+        if x-1 >= 0 and y+2 <= 7 and (array[x-1, y+2] is None or array[x-1, y+2].colour == self.otherColour):
             possibleMoves.append([x-1, y+2])
-        if x+1 <= 7 and y-2 >= 0 and array[x+1, y-2] is None:
+        if x+1 <= 7 and y-2 >= 0 and (array[x+1, y-2] is None or array[x+1, y-2].colour == self.otherColour):
             possibleMoves.append([x+1, y-2])
-        if x-1 >= 0 and y-2 >= 0 and array[x-1, y-2] is None:
+        if x-1 >= 0 and y-2 >= 0 and (array[x-1, y-2] is None or array[x-1, y-2].colour == self.otherColour):
             possibleMoves.append([x-1, y-2])
-        if x+2 <= 7 and y+1 <= 7 and array[x+2, y+1] is None:
+        if x+2 <= 7 and y+1 <= 7 and (array[x+2, y+1] is None or array[x+2, y+1].colour == self.otherColour):
             possibleMoves.append([x+2, y+1])
-        if x+2 <= 7 and y-1 >= 0 and array[x+2, y-1] is None:
+        if x+2 <= 7 and y-1 >= 0 and (array[x+2, y-1] is None or array[x+2, y-1].colour == self.otherColour):
             possibleMoves.append([x+2, y-1])
-        if x-2 >= 0 and y+1 <= 7 and array[x-2, y+1] is None:
+        if x-2 >= 0 and y+1 <= 7 and (array[x-2, y+1] is None or array[x-2, y+1].colour == self.otherColour):
             possibleMoves.append([x-2, y+1])
-        if x-2 >= 0 and y-1 >= 0 and array[x-2, y-1] is None:
+        if x-2 >= 0 and y-1 >= 0 and (array[x-2, y-1] is None or array[x-2, y-1].colour == self.otherColour):
             possibleMoves.append([x-2, y-1])
         return possibleMoves
 

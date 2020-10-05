@@ -90,6 +90,9 @@ class GraphicsInterface():
 
     def released(self, event):
         self.released = self.pixelToCoord(event.x, event.y)
+        print(self.selectedPiece)
+        print(self.selectedPiece.coord)
+        print(self.selectedPiece.possibleMoves())
         if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
             self.board.move([self.click[0], self.click[1]], [self.released[0], self.released[1]])
             xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])

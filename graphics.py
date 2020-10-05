@@ -91,17 +91,14 @@ class GraphicsInterface():
         self.released = self.pixelToCoord(event.x, event.y)
         if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
             self.board.move([self.click[0], self.click[1]], [self.released[0], self.released[1]])
-            xs = -(event.x % self.squareSize) + self.squareSize/2
-            ys = -(event.y % self.squareSize) + self.squareSize/2
-            self.canvas.move(self.selectedPiece.Image, xs, ys)
+            xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+
         else:
-            x, y = self.coordToPixel(self.click[0], self.click[1])
-            xs = -(event.x - x)
-            ys = -(event.y - y)
-            self.canvas.move(self.selectedPiece.Image, xs, ys)
-            self.selectedPiece = []
-            self.click = []
-            self.released = []
+            xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
+        self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
+        self.selectedPiece = []
+        self.click = []
+        self.released = []
 
 
 GraphicsInterface()

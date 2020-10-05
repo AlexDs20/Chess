@@ -23,22 +23,62 @@ class Board:
         self.array[6, 0] = Knight([6, 0], "white", self)
         self.array[2, 0] = Bishop([2, 0], "white", self)
         self.array[5, 0] = Bishop([5, 0], "white", self)
-        self.array[3, 0] = King([3, 0], "white", self)
-        self.array[4, 0] = Queen([4, 0], "white", self)
+        self.array[3, 0] = Queen([3, 0], "white", self)
+        self.array[4, 0] = King([4, 0], "white", self)
         self.array[0, 7] = Rook([0, 7], "black", self)
         self.array[7, 7] = Rook([7, 7], "black", self)
         self.array[1, 7] = Knight([1, 7], "black", self)
         self.array[6, 7] = Knight([6, 7], "black", self)
         self.array[2, 7] = Bishop([2, 7], "black", self)
         self.array[5, 7] = Bishop([5, 7], "black", self)
-        self.array[3, 7] = Queen([3, 7], "black", self)
-        self.array[4, 7] = King([4, 7], "black", self)
+        self.array[4, 7] = Queen([4, 7], "black", self)
+        self.array[3, 7] = King([3, 7], "black", self)
 
     def move(self, moveFrom, moveTo):
         if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
             self.array[moveTo[0], moveTo[1]].coord = moveTo
+
+    def isCheck(self, coord, colour):
+        # To look if a piece of colour at square coord is in check or not
+        # Needed for castle, checks and checkmate
+        check = False
+        for i in range(self.boardSize):
+            for j in range(self.boardSize):
+                if (self.array[i, j] is not None and self.array[i, j].otherColour == colour):
+                    possibleMoves = self.array[i, j].possibleMoves()
+                    if isinstance(self.array[i, j], King):
+                        continue
+                    if isinstance(self.array[i, j], Pawn):
+                        if self.array[i, j].colour == "white":
+                            if [i, j+1] in possibleMoves:
+                                possibleMoves.remove([i, j+1])
+                            if [i, j+2] in possibleMoves:
+                                possibleMoves.remove([i, j+2])
+                        elif self.array[i, j].colour == "black":
+                            if [i, j-1] in possibleMoves:
+                                possibleMoves.remove([i, j-1])
+                            if [i, j-2] in possibleMoves:
+                                possibleMoves.remove([i, j-2])
+                    if coord in possibleMoves:
+                        check = True
+                        break
+        return check
+
+    def promotePawn(self, promoteTo):
+        rank = 0   # Black promoting
+        rank = 7   # White promoting
+        for i in range(self.boardSize):
+            if isinstance(self.array[i, 0], Pawn):
+                if promoteTo == "Rook":
+                    self.array[i, 0] = Rook([i, 0], self.array[i, 0].colour, self)
+                elif promoteTo == "Knight":
+                    self.array[i, 0] = Knight([i, 0], self.array[i, 0].colour, self)
+                elif promoteTo == "Bishop":
+                    self.array[i, 0] = Bishop([i, 0], self.array[i, 0].colour, self)
+                elif promoteTo == "Queen":
+                    self.array[i, 0] = Queen([i, 0], self.array[i, 0].colour, self)
 
     def print(self):
         checkerBoard = np.zeros([self.boardSize, self.boardSize])
@@ -63,7 +103,6 @@ class Board:
 
 
 class Piece:
-
     def __init__(self, coord, colour, board):
         self.colour = colour
         self.otherColour = None
@@ -301,7 +340,6 @@ class Queen(Piece):
         for i in range(len(moveBishop)):
             moveRook.append(moveBishop[i])
         return moveRook
-
 
 # boardSize = 8
 # pathImages = "/home/alexandre/Documents/Chess/images/"

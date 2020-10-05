@@ -44,6 +44,10 @@ class GraphicsInterface():
         self.canvas.bind("<B1-Motion>", self.drag)
         self.canvas.bind("<ButtonRelease-1>", self.released)
 
+        # Check state of board
+        # Promote pawn
+        # check if in check
+
         # Main loop
         self.root.mainloop()
 
@@ -90,9 +94,6 @@ class GraphicsInterface():
 
     def released(self, event):
         self.released = self.pixelToCoord(event.x, event.y)
-        print(self.selectedPiece)
-        print(self.selectedPiece.coord)
-        print(self.selectedPiece.possibleMoves())
         if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
             self.board.move([self.click[0], self.click[1]], [self.released[0], self.released[1]])
             xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
@@ -100,6 +101,7 @@ class GraphicsInterface():
         else:
             xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
         self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
+        print(self.board.isCheck([4, 7], "black"))
         self.selectedPiece = []
         self.click = []
         self.released = []

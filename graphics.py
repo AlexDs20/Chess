@@ -79,6 +79,7 @@ class GraphicsInterface():
     def clicked(self, event):
         self.click = self.pixelToCoord(event.x, event.y)
         self.selectedPiece = self.board.array[self.click[0], self.click[1]]
+        print(self.selectedPiece)
         print(self.selectedPiece.possibleMoves())
 
     def drag(self, event):

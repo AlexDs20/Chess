@@ -266,21 +266,23 @@ class King(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
+        print(x, y)
+        self.board.print()
         if x+1 <= 7 and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x+1, y])
-        if x-1 >= 0 and array[x-1, y] is None or array[x+1, y].colour == self.otherColour:
+        if x-1 >= 0 and (array[x-1, y] is None or array[x-1, y].colour == self.otherColour):
             possibleMoves.append([x-1, y])
-        if y+1 <= 7 and array[x, y+1] is None or array[x+1, y].colour == self.otherColour:
+        if y+1 <= 7 and (array[x, y+1] is None or array[x, y+1].colour == self.otherColour):
             possibleMoves.append([x, y+1])
-        if y-1 >= 0 and array[x, y-1] is None or array[x+1, y].colour == self.otherColour:
+        if y-1 >= 0 and (array[x, y-1] is None or array[x, y-1].colour == self.otherColour):
             possibleMoves.append([x, y-1])
-        if x+1 <= 7 and y+1 <= 7 and (array[x+1, y+1] is None or array[x+1, y].colour == self.otherColour):
+        if x+1 <= 7 and y+1 <= 7 and (array[x+1, y+1] is None or array[x+1, y+1].colour == self.otherColour):
             possibleMoves.append([x+1, y+1])
-        if x+1 <= 7 and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y].colour == self.otherColour):
+        if x+1 <= 7 and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y-1].colour == self.otherColour):
             possibleMoves.append([x+1, y-1])
-        if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x+1, y].colour == self.otherColour):
+        if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x-1, y+1].colour == self.otherColour):
             possibleMoves.append([x-1, y+1])
-        if x-1 >= 0 and y-1 <= 7 and (array[x-1, y-1] is None or array[x+1, y].colour == self.otherColour):
+        if x-1 >= 0 and y-1 <= 7 and (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour):
             possibleMoves.append([x-1, y-1])
         return possibleMoves
 

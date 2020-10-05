@@ -19,7 +19,7 @@ class GraphicsInterface():
         self.shiftY = 64
         self.color1 = '#E3C3A5'
         self.color2 = '#794532'
-        self.pathImages = '/home/alexandre/Documents/Chess/images/'
+        self.pathImages = './images/'
 
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
@@ -59,6 +59,7 @@ class GraphicsInterface():
                                              fill=color)
 
     def createPieces(self):
+        # Not used
         image = PhotoImage(file=r'/home/alexandre/Documents/Chess/images/pawn.png')
         for i in range(8):
             self.Images[i, 6] = image.subsample(int(800/(0.9*self.squareSize)))

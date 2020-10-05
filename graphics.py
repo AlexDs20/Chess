@@ -91,7 +91,6 @@ class GraphicsInterface():
         self.released = self.pixelToCoord(event.x, event.y)
         if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
             self.board.move([self.click[0], self.click[1]], [self.released[0], self.released[1]])
-            self.board.array[self.click[0], self.click[1]] = None
             xs = -(event.x % self.squareSize) + self.squareSize/2
             ys = -(event.y % self.squareSize) + self.squareSize/2
             self.canvas.move(self.selectedPiece.Image, xs, ys)

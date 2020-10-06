@@ -101,7 +101,6 @@ class GraphicsInterface():
         else:
             xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
         self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
-        print(self.board.isCheck([4, 7], "black"))
         self.selectedPiece = []
         self.click = []
         self.released = []

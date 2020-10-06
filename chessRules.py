@@ -305,8 +305,6 @@ class King(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
-        print(x, y)
-        self.board.print()
         if x+1 <= 7 and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
             possibleMoves.append([x+1, y])
         if x-1 >= 0 and (array[x-1, y] is None or array[x-1, y].colour == self.otherColour):

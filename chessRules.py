@@ -2,6 +2,7 @@
 from pathlib import Path
 import numpy as np
 from tkinter import *
+import copy
 
 
 class Board:
@@ -35,7 +36,7 @@ class Board:
         self.array[3, 7] = King([3, 7], "black", self)
 
     def move(self, moveFrom, moveTo):
-        if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
+        if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
             self.array[moveTo[0], moveTo[1]].coord = moveTo
@@ -47,13 +48,26 @@ class Board:
 
     def promotePawn(self, coord, promoteTo):
         if promoteTo == "Queen":
-            self.array[coord[0], coord[1]] = Queen([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+            self.array[coord[0], coord[1]] = Queen(
+                [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
         elif promoteTo == "Rook":
-            self.array[coord[0], coord[1]] = Rook([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+            self.array[coord[0], coord[1]] = Rook(
+                [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
         elif promoteTo == "Knight":
-            self.array[coord[0], coord[1]] = Knight([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+            self.array[coord[0], coord[1]] = Knight(
+                [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
         elif promoteTo == "Bishop":
-            self.array[coord[0], coord[1]] = Bishop([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+            self.array[coord[0], coord[1]] = Bishop(
+                [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+
+    def findKing(self, colour):
+        coord = []
+        for i in range(self.boardSize):
+            for j in range(self.boardSize):
+                if isinstance(self.array[i, j], King) and self.array[i, j].colour == colour:
+                    coord = [i, j]
+                    break
+        return coord
 
     def isCheck(self, coord, colour):
         # To look if a piece of colour at square coord is in check or not
@@ -62,21 +76,21 @@ class Board:
         for i in range(self.boardSize):
             for j in range(self.boardSize):
                 if (self.array[i, j] is not None and self.array[i, j].otherColour == colour):
-                    possibleMoves = self.array[i, j].possibleMoves()
+                    moves = self.array[i, j].allMoves()
                     if isinstance(self.array[i, j], King):
                         continue
                     if isinstance(self.array[i, j], Pawn):
                         if self.array[i, j].colour == "white":
-                            if [i, j+1] in possibleMoves:
-                                possibleMoves.remove([i, j+1])
-                            if [i, j+2] in possibleMoves:
-                                possibleMoves.remove([i, j+2])
+                            if [i, j+1] in moves:
+                                moves.remove([i, j+1])
+                            if [i, j+2] in moves:
+                                moves.remove([i, j+2])
                         elif self.array[i, j].colour == "black":
-                            if [i, j-1] in possibleMoves:
-                                possibleMoves.remove([i, j-1])
-                            if [i, j-2] in possibleMoves:
-                                possibleMoves.remove([i, j-2])
-                    if coord in possibleMoves:
+                            if [i, j-1] in moves:
+                                moves.remove([i, j-1])
+                            if [i, j-2] in moves:
+                                moves.remove([i, j-2])
+                    if coord in moves:
                         check = True
                         break
         return check
@@ -99,7 +113,6 @@ class Board:
                     checkerBoard[i, j] = 6
                 elif self.array[i, j] is not None:
                     checkerBoard[i, j] = 9
-
         print(checkerBoard)
 
 
@@ -120,9 +133,51 @@ class Piece:
         self.Image = []              # Created with canvas.create_image
 
     def resize(self):
-            old_size = max(self.displayImage.width(), self.displayImage.height())
-            self.displayImage = self.displayImage.zoom(int(self.board.UI.squareSize * 0.9))
-            self.displayImage = self.displayImage.subsample(old_size)
+        # old_size = max(self.displayImage.width(), self.displayImage.height())
+        # self.displayImage = self.displayImage.zoom(int(self.board.UI.squareSize * 0.9))
+        # self.displayImage = self.displayImage.subsample(old_size)
+        pass
+
+    def possibleMoves(self):
+        # From all the moves (allMoves), remove those that are such that the king is in check
+        moves = self.allMoves().copy()
+        initPiece = copy.copy(self)
+        moveFrom = initPiece.coord
+        for m in self.allMoves():
+            endPiece = copy.copy(self.board.array[m[0], m[1]])
+            self.board.array[m[0], m[1]] = copy.copy(self)
+            self.board.array[m[0], m[1]].coord = m
+            self.board.array[moveFrom[0], moveFrom[1]] = None
+
+            kingCoord = self.board.findKing(initPiece.colour)
+            check = self.board.isCheck(kingCoord, initPiece.colour)
+
+            self.board.array[moveFrom[0], moveFrom[1]] = initPiece
+            self.board.array[m[0], m[1]] = endPiece
+            if isinstance(endPiece, Piece):
+                self.board.array[m[0], m[1]].coord = m
+
+            if check is True:
+                moves.remove(m)
+        return moves
+
+        #initPiece = copy.copy(self)
+        #moveFrom = initPiece.coord.copy()
+        # for moveTo in initPiece.allMoves():
+        #    endPiece = copy.copy(self.board.array[moveTo[0], moveTo[1]])
+        #    self.board.array[moveTo[0], moveTo[1]] = self
+        #    self.board.array[moveTo[0], moveTo[1]].coord = moveTo
+        #    self.board.array[moveFrom[0], moveFrom[1]] = None
+        #    check = self.board.isCheck(self.board.findKing(initPiece.colour), initPiece.colour)
+        #    print(check)
+        #    print(initPiece)
+        #    self.board.array[moveFrom[0], moveFrom[1]] = initPiece
+        #    self.board.array[moveFrom[0], moveFrom[1]].coord = moveFrom
+        #    self.board.array[moveTo[0], moveTo[1]] = endPiece
+        #    if isinstance(endPiece, Piece):
+        #        self.board.array[moveTo[0], moveTo[1]].coord = moveTo
+        #    self.board.print()
+        # return moves
 
 
 class Pawn(Piece):
@@ -134,30 +189,30 @@ class Pawn(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
-        possibleMoves = []
+    def allMoves(self):
+        allMoves = []
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
         if self.colour == "white":
             if array[x, y+1] is None:
-                possibleMoves.append([x, y+1])
+                allMoves.append([x, y+1])
             if y == 1 and array[x, y+2] is None:
-                possibleMoves.append([x, y+2])
+                allMoves.append([x, y+2])
             if x >= 1 and isinstance(array[x-1, y+1], Piece) and array[x-1, y+1].colour == "black":
-                possibleMoves.append([x-1, y+1])
+                allMoves.append([x-1, y+1])
             if x <= 6 and isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == "black":
-                possibleMoves.append([x+1, y+1])
+                allMoves.append([x+1, y+1])
         elif self.colour == "black":
             if array[x, y-1] is None:
-                possibleMoves.append([x, y-1])
+                allMoves.append([x, y-1])
             if y == 6 and array[x, y-2] is None:
-                possibleMoves.append([x, y-2])
+                allMoves.append([x, y-2])
             if x >= 1 and isinstance(array[x-1, y-1], Piece) and array[x-1, y-1].colour == "white":
-                possibleMoves.append([x-1, y-1])
+                allMoves.append([x-1, y-1])
             if x <= 6 and isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == "white":
-                possibleMoves.append([x+1, y-1])
-        return possibleMoves
+                allMoves.append([x+1, y-1])
+        return allMoves
 
 
 class Rook(Piece):
@@ -169,46 +224,46 @@ class Rook(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
-        possibleMoves = []
+    def allMoves(self):
+        allMoves = []
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
         # Moves along the ranks
         for i in range(x+1, self.board.boardSize):
             if array[i, y] is None:
-                possibleMoves.append([i, y])
+                allMoves.append([i, y])
             elif array[i, y].colour == self.otherColour:
-                possibleMoves.append([i, y])
+                allMoves.append([i, y])
                 break
             else:
                 break
         for i in range(x-1, -1, -1):
             if array[i, y] is None:
-                possibleMoves.append([i, y])
+                allMoves.append([i, y])
             elif array[i, y].colour == self.otherColour:
-                possibleMoves.append([i, y])
+                allMoves.append([i, y])
                 break
             else:
                 break
         # Moves along the files
         for i in range(y+1, self.board.boardSize):
             if array[x, i] is None:
-                possibleMoves.append([x, i])
+                allMoves.append([x, i])
             elif array[x, i].colour == self.otherColour:
-                possibleMoves.append([x, i])
+                allMoves.append([x, i])
                 break
             else:
                 break
         for i in range(y-1, -1, -1):
             if array[x, i] is None:
-                possibleMoves.append([x, i])
+                allMoves.append([x, i])
             elif array[x, i].colour == self.otherColour:
-                possibleMoves.append([x, i])
+                allMoves.append([x, i])
                 break
             else:
                 break
-        return possibleMoves
+        return allMoves
 
 
 class Knight(Piece):
@@ -220,28 +275,28 @@ class Knight(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
-        possibleMoves = []
+    def allMoves(self):
+        allMoves = []
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
         if x+1 <= 7 and y+2 <= 7 and (array[x+1, y+2] is None or array[x+1, y+2].colour == self.otherColour):
-            possibleMoves.append([x+1, y+2])
+            allMoves.append([x+1, y+2])
         if x-1 >= 0 and y+2 <= 7 and (array[x-1, y+2] is None or array[x-1, y+2].colour == self.otherColour):
-            possibleMoves.append([x-1, y+2])
+            allMoves.append([x-1, y+2])
         if x+1 <= 7 and y-2 >= 0 and (array[x+1, y-2] is None or array[x+1, y-2].colour == self.otherColour):
-            possibleMoves.append([x+1, y-2])
+            allMoves.append([x+1, y-2])
         if x-1 >= 0 and y-2 >= 0 and (array[x-1, y-2] is None or array[x-1, y-2].colour == self.otherColour):
-            possibleMoves.append([x-1, y-2])
+            allMoves.append([x-1, y-2])
         if x+2 <= 7 and y+1 <= 7 and (array[x+2, y+1] is None or array[x+2, y+1].colour == self.otherColour):
-            possibleMoves.append([x+2, y+1])
+            allMoves.append([x+2, y+1])
         if x+2 <= 7 and y-1 >= 0 and (array[x+2, y-1] is None or array[x+2, y-1].colour == self.otherColour):
-            possibleMoves.append([x+2, y-1])
+            allMoves.append([x+2, y-1])
         if x-2 >= 0 and y+1 <= 7 and (array[x-2, y+1] is None or array[x-2, y+1].colour == self.otherColour):
-            possibleMoves.append([x-2, y+1])
+            allMoves.append([x-2, y+1])
         if x-2 >= 0 and y-1 >= 0 and (array[x-2, y-1] is None or array[x-2, y-1].colour == self.otherColour):
-            possibleMoves.append([x-2, y-1])
-        return possibleMoves
+            allMoves.append([x-2, y-1])
+        return allMoves
 
 
 class Bishop(Piece):
@@ -253,48 +308,48 @@ class Bishop(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
-        possibleMoves = []
+    def allMoves(self):
+        allMoves = []
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
         # Up right
         for i in range(1, min(7-x, 7-y)+1):
             if array[x+i, y+i] is None:
-                possibleMoves.append([x+i, y+i])
+                allMoves.append([x+i, y+i])
             elif array[x+i, y+i].colour == self.otherColour:
-                possibleMoves.append([x+i, y+i])
+                allMoves.append([x+i, y+i])
                 break
             else:
                 break
         # Up left
         for i in range(1, min(x, 7-y)+1):
             if array[x-i, y+i] is None:
-                possibleMoves.append([x-i, y+i])
+                allMoves.append([x-i, y+i])
             elif array[x-i, y+i].colour == self.otherColour:
-                possibleMoves.append([x-i, y+i])
+                allMoves.append([x-i, y+i])
                 break
             else:
                 break
         # Bottom right
         for i in range(1, min(y, 7-x)+1):
             if array[x+i, y-i] is None:
-                possibleMoves.append([x+i, y-i])
+                allMoves.append([x+i, y-i])
             elif array[x+i, y-i].colour == self.otherColour:
-                possibleMoves.append([x+i, y-i])
+                allMoves.append([x+i, y-i])
                 break
             else:
                 break
         # Bottom left
         for i in range(1, min(x, y)+1):
             if array[x-i, y-i] is None:
-                possibleMoves.append([x-i, y-i])
+                allMoves.append([x-i, y-i])
             elif array[x-i, y-i].colour == self.otherColour:
-                possibleMoves.append([x-i, y-i])
+                allMoves.append([x-i, y-i])
                 break
             else:
                 break
-        return possibleMoves
+        return allMoves
 
 
 class King(Piece):
@@ -309,30 +364,30 @@ class King(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
+    def allMoves(self):
         # TODO: Castling
         #       Check if new case is in check
-        possibleMoves = []
+        allMoves = []
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
         if x+1 <= 7 and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
-            possibleMoves.append([x+1, y])
+            allMoves.append([x+1, y])
         if x-1 >= 0 and (array[x-1, y] is None or array[x-1, y].colour == self.otherColour):
-            possibleMoves.append([x-1, y])
+            allMoves.append([x-1, y])
         if y+1 <= 7 and (array[x, y+1] is None or array[x, y+1].colour == self.otherColour):
-            possibleMoves.append([x, y+1])
+            allMoves.append([x, y+1])
         if y-1 >= 0 and (array[x, y-1] is None or array[x, y-1].colour == self.otherColour):
-            possibleMoves.append([x, y-1])
+            allMoves.append([x, y-1])
         if x+1 <= 7 and y+1 <= 7 and (array[x+1, y+1] is None or array[x+1, y+1].colour == self.otherColour):
-            possibleMoves.append([x+1, y+1])
+            allMoves.append([x+1, y+1])
         if x+1 <= 7 and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y-1].colour == self.otherColour):
-            possibleMoves.append([x+1, y-1])
+            allMoves.append([x+1, y-1])
         if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x-1, y+1].colour == self.otherColour):
-            possibleMoves.append([x-1, y+1])
+            allMoves.append([x-1, y+1])
         if x-1 >= 0 and y-1 <= 7 and (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour):
-            possibleMoves.append([x-1, y-1])
-        return possibleMoves
+            allMoves.append([x-1, y-1])
+        return allMoves
 
 
 class Queen(Piece):
@@ -344,9 +399,9 @@ class Queen(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def possibleMoves(self):
-        moveRook = Rook(self.coord, self.colour, self.board).possibleMoves()
-        moveBishop = Bishop(self.coord, self.colour, self.board).possibleMoves()
+    def allMoves(self):
+        moveRook = Rook(self.coord, self.colour, self.board).allMoves()
+        moveBishop = Bishop(self.coord, self.colour, self.board).allMoves()
         for i in range(len(moveBishop)):
             moveRook.append(moveBishop[i])
         return moveRook

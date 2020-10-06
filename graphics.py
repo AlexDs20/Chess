@@ -45,7 +45,6 @@ class GraphicsInterface():
         self.canvas.bind("<ButtonRelease-1>", self.released)
 
         # Check state of board
-        # Promote pawn
         # check if in check
 
         # Main loop
@@ -83,28 +82,33 @@ class GraphicsInterface():
 
     def clicked(self, event):
         self.click = self.pixelToCoord(event.x, event.y)
-        self.selectedPiece = self.board.array[self.click[0], self.click[1]]
-        print(self.selectedPiece)
-        print(self.selectedPiece.possibleMoves())
+        if 0 <= self.click[0] <= 7 and 0 <= self.click[1] <= 7:
+            self.selectedPiece = self.board.array[self.click[0], self.click[1]]
+            if isinstance(self.selectedPiece, Piece):
+                print(self.selectedPiece)
+                print(self.selectedPiece.possibleMoves())
 
     def drag(self, event):
-        x = self.click[0]
-        y = self.click[1]
-        xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
-        self.canvas.move(self.selectedPiece.Image, event.x-xMid, event.y-yMid)
+        if isinstance(self.selectedPiece, Piece):
+            x = self.click[0]
+            y = self.click[1]
+            xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
+            self.canvas.move(self.selectedPiece.Image, event.x-xMid, event.y-yMid)
 
     def released(self, event):
-        self.released = self.pixelToCoord(event.x, event.y)
-        if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
-            self.board.move([self.click[0], self.click[1]], [self.released[0], self.released[1]])
-            xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+        if isinstance(self.selectedPiece, Piece):
+            self.released = self.pixelToCoord(event.x, event.y)
+            if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
+                self.board.move([self.click[0], self.click[1]], [
+                                self.released[0], self.released[1]])
+                xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
 
-        else:
-            xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
-        self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
-        self.selectedPiece = []
-        self.click = []
-        self.released = []
+            else:
+                xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
+            self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
+            self.selectedPiece = []
+            self.click = []
+            self.released = []
 
 
 GraphicsInterface()

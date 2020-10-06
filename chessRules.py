@@ -118,12 +118,18 @@ class Piece:
         self.displayImage = []       # Created with PhotoImage
         self.Image = []              # Created with canvas.create_image
 
+    def resize(self):
+            old_size = max(self.displayImage.width(), self.displayImage.height())
+            self.displayImage = self.displayImage.zoom(int(self.board.UI.squareSize * 0.9))
+            self.displayImage = self.displayImage.subsample(old_size)
+
 
 class Pawn(Piece):
     def __init__(self, coord, colour, board):
         Piece.__init__(self, coord, colour, board)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Pawn.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
@@ -158,6 +164,7 @@ class Rook(Piece):
         Piece.__init__(self, coord, colour, board)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Rook.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
@@ -208,6 +215,7 @@ class Knight(Piece):
         Piece.__init__(self, coord, colour, board)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Knight.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
@@ -240,6 +248,7 @@ class Bishop(Piece):
         Piece.__init__(self, coord, colour, board)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Bishop.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
@@ -295,6 +304,7 @@ class King(Piece):
         self.inCheck = False
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'King.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
@@ -329,6 +339,7 @@ class Queen(Piece):
         Piece.__init__(self, coord, colour, board)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Queen.png')
+        self.resize()
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 

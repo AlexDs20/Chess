@@ -39,6 +39,21 @@ class Board:
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
             self.array[moveTo[0], moveTo[1]].coord = moveTo
+            # If Pawn on last rank: Promote
+            if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
+                if(self.array[moveTo[0], moveTo[1]].colour == "black" and moveTo[1] == 0) or (self.array[moveTo[0], moveTo[1]].colour == "white" and moveTo[1] == 7):
+                    promoteTo = input('Promote into a:')
+                    self.promotePawn(moveTo, promoteTo)
+
+    def promotePawn(self, coord, promoteTo):
+        if promoteTo == "Queen":
+            self.array[coord[0], coord[1]] = Queen([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+        elif promoteTo == "Rook":
+            self.array[coord[0], coord[1]] = Rook([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+        elif promoteTo == "Knight":
+            self.array[coord[0], coord[1]] = Knight([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
+        elif promoteTo == "Bishop":
+            self.array[coord[0], coord[1]] = Bishop([coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
 
     def isCheck(self, coord, colour):
         # To look if a piece of colour at square coord is in check or not
@@ -65,20 +80,6 @@ class Board:
                         check = True
                         break
         return check
-
-    def promotePawn(self, promoteTo):
-        rank = 0   # Black promoting
-        rank = 7   # White promoting
-        for i in range(self.boardSize):
-            if isinstance(self.array[i, 0], Pawn):
-                if promoteTo == "Rook":
-                    self.array[i, 0] = Rook([i, 0], self.array[i, 0].colour, self)
-                elif promoteTo == "Knight":
-                    self.array[i, 0] = Knight([i, 0], self.array[i, 0].colour, self)
-                elif promoteTo == "Bishop":
-                    self.array[i, 0] = Bishop([i, 0], self.array[i, 0].colour, self)
-                elif promoteTo == "Queen":
-                    self.array[i, 0] = Queen([i, 0], self.array[i, 0].colour, self)
 
     def print(self):
         checkerBoard = np.zeros([self.boardSize, self.boardSize])

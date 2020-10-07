@@ -19,7 +19,7 @@ class Board:
 
         for i in range(self.boardSize):
             self.array[i, 1] = Pawn([i, 1], "white", self)
-            self.array[i, 6] = Pawn([i, 6], "black", self)
+            self.array[i, self.boardSize-2] = Pawn([i, self.boardSize-2], "black", self)
         self.array[0, 0] = Rook([0, 0], "white", self)
         self.array[7, 0] = Rook([7, 0], "white", self)
         self.array[1, 0] = Knight([1, 0], "white", self)
@@ -28,14 +28,14 @@ class Board:
         self.array[5, 0] = Bishop([5, 0], "white", self)
         self.array[3, 0] = Queen([3, 0], "white", self)
         self.array[4, 0] = King([4, 0], "white", self)
-        self.array[0, 7] = Rook([0, 7], "black", self)
-        self.array[7, 7] = Rook([7, 7], "black", self)
-        self.array[1, 7] = Knight([1, 7], "black", self)
-        self.array[6, 7] = Knight([6, 7], "black", self)
-        self.array[2, 7] = Bishop([2, 7], "black", self)
-        self.array[5, 7] = Bishop([5, 7], "black", self)
-        self.array[3, 7] = Queen([3, 7], "black", self)
-        self.array[4, 7] = King([4, 7], "black", self)
+        self.array[0, self.boardSize-1] = Rook([0, self.boardSize-1], "black", self)
+        self.array[7, self.boardSize-1] = Rook([7, self.boardSize-1], "black", self)
+        self.array[1, self.boardSize-1] = Knight([1, self.boardSize-1], "black", self)
+        self.array[6, self.boardSize-1] = Knight([6, self.boardSize-1], "black", self)
+        self.array[2, self.boardSize-1] = Bishop([2, self.boardSize-1], "black", self)
+        self.array[5, self.boardSize-1] = Bishop([5, self.boardSize-1], "black", self)
+        self.array[3, self.boardSize-1] = Queen([3, self.boardSize-1], "black", self)
+        self.array[4, self.boardSize-1] = King([4, self.boardSize-1], "black", self)
 
     def move(self, moveFrom, moveTo):
         if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
@@ -44,7 +44,7 @@ class Board:
             self.array[moveTo[0], moveTo[1]].coord = moveTo
             # If Pawn on last rank: Promote
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
-                if(self.array[moveTo[0], moveTo[1]].colour == "black" and moveTo[1] == 0) or (self.array[moveTo[0], moveTo[1]].colour == "white" and moveTo[1] == 7):
+                if(self.array[moveTo[0], moveTo[1]].colour == "black" and moveTo[1] == 0) or (self.array[moveTo[0], moveTo[1]].colour == "white" and moveTo[1] == self.boardSize-1):
                     promoteTo = input('Promote into a:')
                     self.promotePawn(moveTo, promoteTo)
 
@@ -97,15 +97,15 @@ class Board:
                         break
         return check
 
-    def checkMate(self, colour):
-        checkMate = True
+    def checkmate(self, colour):
+        checkmate = True
         for i in range(self.boardSize):
             for j in range(self.boardSize):
                 if isinstance(self.array[i, j], Piece) and self.array[i, j].colour == colour:
                     if self.array[i, j].possibleMoves():
-                        checkMate = False
+                        checkmate = False
                         break
-        return checkMate
+        return checkmate
 
     def print(self):
         checkerBoard = np.zeros([self.boardSize, self.boardSize])
@@ -187,6 +187,7 @@ class Pawn(Piece):
     def allMoves(self):
         allMoves = []
         array = self.board.array
+        boardSize = self.board.boardSize-1
         x = self.coord[0]
         y = self.coord[1]
         if self.colour == "white":
@@ -196,16 +197,16 @@ class Pawn(Piece):
                 allMoves.append([x, y+2])
             if x >= 1 and isinstance(array[x-1, y+1], Piece) and array[x-1, y+1].colour == "black":
                 allMoves.append([x-1, y+1])
-            if x <= 6 and isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == "black":
+            if x <= boardSize-1 and isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == "black":
                 allMoves.append([x+1, y+1])
         elif self.colour == "black":
             if array[x, y-1] is None:
                 allMoves.append([x, y-1])
-            if y == 6 and array[x, y-2] is None:
+            if y == boardSize-1 and array[x, y-2] is None:
                 allMoves.append([x, y-2])
             if x >= 1 and isinstance(array[x-1, y-1], Piece) and array[x-1, y-1].colour == "white":
                 allMoves.append([x-1, y-1])
-            if x <= 6 and isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == "white":
+            if x <= boardSize-1 and isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == "white":
                 allMoves.append([x+1, y-1])
         return allMoves
 
@@ -275,19 +276,20 @@ class Knight(Piece):
         array = self.board.array
         x = self.coord[0]
         y = self.coord[1]
-        if x+1 <= 7 and y+2 <= 7 and (array[x+1, y+2] is None or array[x+1, y+2].colour == self.otherColour):
+        boardSize = self.board.boardSize-1
+        if x+1 <= boardSize and y+2 <= boardSize and (array[x+1, y+2] is None or array[x+1, y+2].colour == self.otherColour):
             allMoves.append([x+1, y+2])
-        if x-1 >= 0 and y+2 <= 7 and (array[x-1, y+2] is None or array[x-1, y+2].colour == self.otherColour):
+        if x-1 >= 0 and y+2 <= boardSize and (array[x-1, y+2] is None or array[x-1, y+2].colour == self.otherColour):
             allMoves.append([x-1, y+2])
-        if x+1 <= 7 and y-2 >= 0 and (array[x+1, y-2] is None or array[x+1, y-2].colour == self.otherColour):
+        if x+1 <= boardSize and y-2 >= 0 and (array[x+1, y-2] is None or array[x+1, y-2].colour == self.otherColour):
             allMoves.append([x+1, y-2])
         if x-1 >= 0 and y-2 >= 0 and (array[x-1, y-2] is None or array[x-1, y-2].colour == self.otherColour):
             allMoves.append([x-1, y-2])
-        if x+2 <= 7 and y+1 <= 7 and (array[x+2, y+1] is None or array[x+2, y+1].colour == self.otherColour):
+        if x+2 <= boardSize and y+1 <= boardSize and (array[x+2, y+1] is None or array[x+2, y+1].colour == self.otherColour):
             allMoves.append([x+2, y+1])
-        if x+2 <= 7 and y-1 >= 0 and (array[x+2, y-1] is None or array[x+2, y-1].colour == self.otherColour):
+        if x+2 <= boardSize and y-1 >= 0 and (array[x+2, y-1] is None or array[x+2, y-1].colour == self.otherColour):
             allMoves.append([x+2, y-1])
-        if x-2 >= 0 and y+1 <= 7 and (array[x-2, y+1] is None or array[x-2, y+1].colour == self.otherColour):
+        if x-2 >= 0 and y+1 <= boardSize and (array[x-2, y+1] is None or array[x-2, y+1].colour == self.otherColour):
             allMoves.append([x-2, y+1])
         if x-2 >= 0 and y-1 >= 0 and (array[x-2, y-1] is None or array[x-2, y-1].colour == self.otherColour):
             allMoves.append([x-2, y-1])
@@ -306,10 +308,11 @@ class Bishop(Piece):
     def allMoves(self):
         allMoves = []
         array = self.board.array
+        boardSize = self.board.boardSize-1
         x = self.coord[0]
         y = self.coord[1]
         # Up right
-        for i in range(1, min(7-x, 7-y)+1):
+        for i in range(1, min(boardSize-x, boardSize-y)+1):
             if array[x+i, y+i] is None:
                 allMoves.append([x+i, y+i])
             elif array[x+i, y+i].colour == self.otherColour:
@@ -318,7 +321,7 @@ class Bishop(Piece):
             else:
                 break
         # Up left
-        for i in range(1, min(x, 7-y)+1):
+        for i in range(1, min(x, boardSize-y)+1):
             if array[x-i, y+i] is None:
                 allMoves.append([x-i, y+i])
             elif array[x-i, y+i].colour == self.otherColour:
@@ -327,7 +330,7 @@ class Bishop(Piece):
             else:
                 break
         # Bottom right
-        for i in range(1, min(y, 7-x)+1):
+        for i in range(1, min(y, boardSize-x)+1):
             if array[x+i, y-i] is None:
                 allMoves.append([x+i, y-i])
             elif array[x+i, y-i].colour == self.otherColour:
@@ -363,21 +366,22 @@ class King(Piece):
         # TODO: Castling
         allMoves = []
         array = self.board.array
+        boardSize = self.board.boardSize-1
         x = self.coord[0]
         y = self.coord[1]
-        if x+1 <= 7 and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
+        if x+1 <= boardSize and (array[x+1, y] is None or array[x+1, y].colour == self.otherColour):
             allMoves.append([x+1, y])
         if x-1 >= 0 and (array[x-1, y] is None or array[x-1, y].colour == self.otherColour):
             allMoves.append([x-1, y])
-        if y+1 <= 7 and (array[x, y+1] is None or array[x, y+1].colour == self.otherColour):
+        if y+1 <= boardSize and (array[x, y+1] is None or array[x, y+1].colour == self.otherColour):
             allMoves.append([x, y+1])
         if y-1 >= 0 and (array[x, y-1] is None or array[x, y-1].colour == self.otherColour):
             allMoves.append([x, y-1])
-        if x+1 <= 7 and y+1 <= 7 and (array[x+1, y+1] is None or array[x+1, y+1].colour == self.otherColour):
+        if x+1 <= boardSize and y+1 <= boardSize and (array[x+1, y+1] is None or array[x+1, y+1].colour == self.otherColour):
             allMoves.append([x+1, y+1])
-        if x+1 <= 7 and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y-1].colour == self.otherColour):
+        if x+1 <= boardSize and y-1 >= 0 and (array[x+1, y-1] is None or array[x+1, y-1].colour == self.otherColour):
             allMoves.append([x+1, y-1])
-        if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x-1, y+1].colour == self.otherColour):
+        if x-1 >= 0 and y+1 <= boardSize and (array[x-1, y+1] is None or array[x-1, y+1].colour == self.otherColour):
             allMoves.append([x-1, y+1])
         if x-1 >= 0 and y-1 >= 0 and (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour):
             allMoves.append([x-1, y-1])

@@ -15,3 +15,4 @@ What needs to be done:
 - [ ] Castle
 - [ ] Checkmate
 - [ ] Implement deep learning bot
+- [ ] Black and white must play alternatively

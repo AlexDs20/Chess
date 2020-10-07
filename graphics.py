@@ -24,9 +24,11 @@ class GraphicsInterface():
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
-        self.click = []
-        self.realeased = []
+        self.click = np.empty(2, dtype=int)
+        self.realeased = np.empty(2, dtype=int)
         self.selectedPiece = []
+        self.possibleMovesWidget = []
+        self.possibleMovesImg = []
         # -----------
 
         # Interface
@@ -37,15 +39,11 @@ class GraphicsInterface():
         # Setup board
         self.createCheckerboard()
         self.board = Board(self)
-        # self.createPieces()
 
         # Click actions
         self.canvas.bind("<Button-1>", self.clicked)
         self.canvas.bind("<B1-Motion>", self.drag)
         self.canvas.bind("<ButtonRelease-1>", self.released)
-
-        # Check state of board
-        # check if in check
 
         # Main loop
         self.root.mainloop()
@@ -61,32 +59,35 @@ class GraphicsInterface():
                                              (i+1)*self.squareSize, (j+1)*self.squareSize,
                                              fill=color)
 
-    def createPieces(self):
-        # Not used
-        image = PhotoImage(file=r'/home/alexandre/Documents/Chess/images/pawn.png')
-        for i in range(8):
-            self.Images[i, 6] = image.subsample(int(800/(0.9*self.squareSize)))
-            X, Y = self.coordToPixel(i, 6)
-            self.Pieces[i, 6] = self.canvas.create_image((X, Y), image=self.Images[i, 6])
+    def showPossibleMoves(self):
+        for coord in self.board.array[self.click[0], self.click[1]].possibleMoves():
+            imgWidget = PhotoImage(file=self.pathImages+'possibleMove.png')
+            self.possibleMovesWidget.append(imgWidget)
+            X, Y = self.coordToPixel(coord[0], coord[1])
+            img = self.canvas.create_image((X, Y), image=imgWidget)
+            self.possibleMovesImg.append(img)
 
     def coordToPixel(self, x, y):
         # Returns center of square at coord [x, y] in Pixels
         xPix = (x+0.5)*self.squareSize
-        yPix = (7-y+0.5)*self.squareSize
+        yPix = (self.boardSize-1-y+0.5)*self.squareSize
         return xPix, yPix
 
     def pixelToCoord(self, x, y):
-        xCoord = int(np.floor(x/self.squareSize))
-        yCoord = int(abs(7-np.floor(y/self.squareSize)))
-        return xCoord, yCoord
+        x = int(np.floor(x/self.squareSize))
+        y = int(self.boardSize-1-np.floor(y/self.squareSize))
+        if x<0 or x>=self.boardSize or y<0 or y>=self.boardSize:
+            x = []
+            y = []
+        return x, y
 
     def clicked(self, event):
         self.click = self.pixelToCoord(event.x, event.y)
-        if 0 <= self.click[0] <= 7 and 0 <= self.click[1] <= 7:
+        if self.click:
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]
             if isinstance(self.selectedPiece, Piece):
-                print(self.selectedPiece)
-                print(self.selectedPiece.possibleMoves())
+                print(self.selectedPiece.__class__.__name__+' at: '+str(self.selectedPiece.coord))
+                self.showPossibleMoves()
 
     def drag(self, event):
         if isinstance(self.selectedPiece, Piece):
@@ -98,17 +99,21 @@ class GraphicsInterface():
     def released(self, event):
         if isinstance(self.selectedPiece, Piece):
             self.released = self.pixelToCoord(event.x, event.y)
-            if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
-                self.board.move([self.click[0], self.click[1]], [
-                                self.released[0], self.released[1]])
-                xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
-
-            else:
-                xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
-            self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
-            self.selectedPiece = []
-            self.click = []
-            self.released = []
+            if self.released:
+                if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
+                    self.board.move([self.click[0], self.click[1]], [
+                                    self.released[0], self.released[1]])
+                    xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+                    if self.board.checkMate(self.selectedPiece.otherColour):
+                        print("Checkmate, " + self.selectedPiece.otherColour + "  looses!")
+                else:
+                    xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
+                self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
+            self.possibleMovesWidget = []
+            self.possibleMovesImg = []
+        self.selectedPiece = []
+        self.click = np.empty(2, dtype=int)
+        self.released = np.empty(2, dtype=int)
 
 
 GraphicsInterface()

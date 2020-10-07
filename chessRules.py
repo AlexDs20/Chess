@@ -1,4 +1,5 @@
 #!/bin/python3
+
 from pathlib import Path
 import numpy as np
 from tkinter import *
@@ -15,6 +16,7 @@ class Board:
 
     def initBoard(self):
         self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
+
         for i in range(self.boardSize):
             self.array[i, 1] = Pawn([i, 1], "white", self)
             self.array[i, 6] = Pawn([i, 6], "black", self)
@@ -32,8 +34,8 @@ class Board:
         self.array[6, 7] = Knight([6, 7], "black", self)
         self.array[2, 7] = Bishop([2, 7], "black", self)
         self.array[5, 7] = Bishop([5, 7], "black", self)
-        self.array[4, 7] = Queen([4, 7], "black", self)
-        self.array[3, 7] = King([3, 7], "black", self)
+        self.array[3, 7] = Queen([3, 7], "black", self)
+        self.array[4, 7] = King([4, 7], "black", self)
 
     def move(self, moveFrom, moveTo):
         if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
@@ -95,6 +97,16 @@ class Board:
                         break
         return check
 
+    def checkMate(self, colour):
+        checkMate = True
+        for i in range(self.boardSize):
+            for j in range(self.boardSize):
+                if isinstance(self.array[i, j], Piece) and self.array[i, j].colour == colour:
+                    if self.array[i, j].possibleMoves():
+                        checkMate = False
+                        break
+        return checkMate
+
     def print(self):
         checkerBoard = np.zeros([self.boardSize, self.boardSize])
         for i in range(self.boardSize):
@@ -143,7 +155,7 @@ class Piece:
         moves = self.allMoves().copy()
         initPiece = copy.copy(self)
         moveFrom = initPiece.coord
-        for m in self.allMoves():
+        for m in self.allMoves().copy():
             endPiece = copy.copy(self.board.array[m[0], m[1]])
             self.board.array[m[0], m[1]] = copy.copy(self)
             self.board.array[m[0], m[1]].coord = m
@@ -159,25 +171,8 @@ class Piece:
 
             if check is True:
                 moves.remove(m)
-        return moves
 
-        #initPiece = copy.copy(self)
-        #moveFrom = initPiece.coord.copy()
-        # for moveTo in initPiece.allMoves():
-        #    endPiece = copy.copy(self.board.array[moveTo[0], moveTo[1]])
-        #    self.board.array[moveTo[0], moveTo[1]] = self
-        #    self.board.array[moveTo[0], moveTo[1]].coord = moveTo
-        #    self.board.array[moveFrom[0], moveFrom[1]] = None
-        #    check = self.board.isCheck(self.board.findKing(initPiece.colour), initPiece.colour)
-        #    print(check)
-        #    print(initPiece)
-        #    self.board.array[moveFrom[0], moveFrom[1]] = initPiece
-        #    self.board.array[moveFrom[0], moveFrom[1]].coord = moveFrom
-        #    self.board.array[moveTo[0], moveTo[1]] = endPiece
-        #    if isinstance(endPiece, Piece):
-        #        self.board.array[moveTo[0], moveTo[1]].coord = moveTo
-        #    self.board.print()
-        # return moves
+        return moves
 
 
 class Pawn(Piece):
@@ -366,7 +361,6 @@ class King(Piece):
 
     def allMoves(self):
         # TODO: Castling
-        #       Check if new case is in check
         allMoves = []
         array = self.board.array
         x = self.coord[0]
@@ -385,7 +379,7 @@ class King(Piece):
             allMoves.append([x+1, y-1])
         if x-1 >= 0 and y+1 <= 7 and (array[x-1, y+1] is None or array[x-1, y+1].colour == self.otherColour):
             allMoves.append([x-1, y+1])
-        if x-1 >= 0 and y-1 <= 7 and (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour):
+        if x-1 >= 0 and y-1 >= 0 and (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour):
             allMoves.append([x-1, y-1])
         return allMoves
 
@@ -400,12 +394,9 @@ class Queen(Piece):
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
     def allMoves(self):
+        #print(self.colour + " Queen coord: " + str(self.coord))
         moveRook = Rook(self.coord, self.colour, self.board).allMoves()
         moveBishop = Bishop(self.coord, self.colour, self.board).allMoves()
         for i in range(len(moveBishop)):
             moveRook.append(moveBishop[i])
         return moveRook
-
-# boardSize = 8
-# pathImages = "/home/alexandre/Documents/Chess/images/"
-# board = Board(boardSize, pathImages, canvas)

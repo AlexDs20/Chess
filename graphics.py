@@ -10,8 +10,8 @@ class GraphicsInterface():
         # Variables
         self.padx = 50
         self.pady = 50
-        self.height = 800
-        self.width = 800
+        self.height = 900
+        self.width = 900
         self.bgColor = '#F7F7F7'
         self.boardSize = 8
         self.squareSize = np.min([(self.width-2*self.padx) // self.boardSize,

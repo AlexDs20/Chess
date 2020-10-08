@@ -12,8 +12,9 @@ What is done:
 - [x] Show possible moves on screen
 
 What needs to be done:
-- [ ] Make svg files for each of the pieces
-- [ ] Make the graphics scaling with the window
 - [ ] Castle
-- [ ] Implement deep learning bot
+- [ ] En passant
 - [ ] Black and white must play alternatively
+- [ ] Make svg files for each of the pieces
+- [ ] Implement deep learning bot
+- [ ] Make the graphics scaling with the window

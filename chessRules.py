@@ -1,8 +1,7 @@
 #!/bin/python3
 
-from pathlib import Path
 import numpy as np
-from tkinter import *
+from tkinter import PhotoImage
 import copy
 
 
@@ -55,9 +54,7 @@ class Board:
                     self.promotePawn(moveTo, promoteTo)
             # If Rook move: remember that it moved
             if isinstance(self.array[moveTo[0], moveTo[1]], Rook):
-                print(self.array[moveTo[0], moveTo[1]].hasMoved)
                 self.array[moveTo[0], moveTo[1]].hasMoved = True
-                print(self.array[moveTo[0], moveTo[1]].hasMoved)
             # If King move: remember that it moved
             if isinstance(self.array[moveTo[0], moveTo[1]], King):
                 self.array[moveTo[0], moveTo[1]].hasMoved = True

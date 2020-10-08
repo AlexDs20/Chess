@@ -11,10 +11,12 @@ What is done:
 - [x] Checkmate
 - [x] Show possible moves on screen
 
-What needs to be done:
+What must be done:
 - [ ] Castle
 - [ ] En passant
 - [ ] Black and white must play alternatively
-- [ ] Make svg files for each of the pieces
 - [ ] Implement deep learning bot
+
+What could be done:
+- [ ] Make svg files for each of the pieces
 - [ ] Make the graphics scaling with the window

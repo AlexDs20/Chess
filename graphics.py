@@ -1,7 +1,7 @@
 #!/bin/python3
 import numpy as np
-from tkinter import *
-from chessRules import *
+from tkinter import Tk, Canvas, PhotoImage
+from chessRules import Board, Piece
 
 
 class GraphicsInterface():
@@ -74,16 +74,16 @@ class GraphicsInterface():
             self.possibleMovesImg.append(img)
 
     def showCheckmate(self):
-        rw = 5*self.squareSize
-        rh = 3*self.squareSize
+        rw = 4*self.squareSize
+        rh = 1.5*self.squareSize
         bgColour = "#ACA7A6"
         w = (self.width // 2) - rw // 2
         h = (self.height // 2) - rh // 2
 
-        r = self.round_rectangle(w, h, w+rw, h+rh, r=self.squareSize//2, fill=bgColour)
-        t = self.canvas.create_text(self.width//2, self.height//2,
-                                    text=f'{self.selectedPiece.colour} won!'.title(),
-                                    font=("Helvetica", 40))
+        self.round_rectangle(w, h, w+rw, h+rh, r=self.squareSize//2, fill=bgColour)
+        self.canvas.create_text(self.width//2, self.height//2,
+                                text=f'{self.selectedPiece.colour} won!'.title(),
+                                font=("Helvetica", 40))
 
     def coordToPixel(self, x, y):
         # Returns center of square at coord [x, y] in Pixels
@@ -108,8 +108,6 @@ class GraphicsInterface():
 
     def drag(self, event):
         if isinstance(self.selectedPiece, Piece):
-            x = self.click[0]
-            y = self.click[1]
             xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
             self.canvas.move(self.selectedPiece.Image, event.x-xMid, event.y-yMid)
 

@@ -10,6 +10,8 @@ class Board:
         self.boardSize = UI.boardSize
         self.UI = UI
         self.initBoard()
+        self.enPassant = []
+        # Not used
         self.info = {"a": 0, "b": 1, "c": 2, "d": 3,
                      "e": 4, "f": 5, "g": 6, "h": 7}
 
@@ -45,19 +47,26 @@ class Board:
         if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
-            self.array[moveTo[0], moveTo[1]].coord = moveTo
-            # If Pawn on first/last rank: Promote
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
+                # If Pawn on first/last rank: Promote
                 if ((self.array[moveTo[0], moveTo[1]].colour == 'black' and moveTo[1] == 0) or
                         (self.array[moveTo[0], moveTo[1]].colour == 'white' and moveTo[1] == self.boardSize-1)):
                     promoteTo = input('Promote into a:')
                     self.promotePawn(moveTo, promoteTo)
-            # If Rook move: remember that it moved
-            if isinstance(self.array[moveTo[0], moveTo[1]], Rook):
-                self.array[moveTo[0], moveTo[1]].hasMoved = True
-            # If King move: remember that it moved
-            if isinstance(self.array[moveTo[0], moveTo[1]], King):
-                self.array[moveTo[0], moveTo[1]].hasMoved = True
+                # If pawn moves en passant: remove pawn
+                if self.array[moveTo[0], moveTo[1]].colour == 'white':
+                    self.array[moveTo[0], moveTo[1]-1] = None
+                else:
+                    self.array[moveTo[0], moveTo[1]+1] = None
+                # If enPassant possible: save where the next pawn can go
+                self.enPassant = []
+                if abs(moveTo[1]-moveFrom[1]) == 2:
+                    if self.array[moveTo[0], moveTo[1]].colour == 'white':
+                        self.enPassant = [[moveTo[0], moveTo[1]-1]]
+                    else:
+                        self.enPassant = [[moveTo[0], moveTo[1]+1]]
+                print(self.enPassant)
+            self.array[moveTo[0], moveTo[1]].updateMove(moveTo)
 
     def promotePawn(self, coord, promoteTo):
         """
@@ -151,6 +160,7 @@ class Piece:
     def __init__(self, coord, colour, board):
         self.colour = colour
         self.otherColour = None
+        self.hasMoved = False
         if self.colour == 'white':
             self.otherColour = 'black'
         else:
@@ -162,6 +172,10 @@ class Piece:
         # Graphics
         self.displayImage = None       # Created with PhotoImage
         self.Image = None              # Created with canvas.create_image
+
+    def updateMove(self, moveTo):
+        self.coord = moveTo
+        self.hasMoved = True
 
     def resize(self):
         """
@@ -231,6 +245,11 @@ class Pawn(Piece):
             if (x <= boardSize-1 and
                     isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == 'black'):
                 allMoves.append([x+1, y+1])
+            # En Passant
+            if [x+1, y+1] in self.board.enPassant:
+                allMoves.append([x+1, y+1])
+            if [x-1, y+1] in self.board.enPassant:
+                allMoves.append([x-1, y+1])
         elif self.colour == 'black':
             if array[x, y-1] is None:
                 allMoves.append([x, y-1])
@@ -242,13 +261,17 @@ class Pawn(Piece):
             if (x <= boardSize-1 and
                     isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == 'white'):
                 allMoves.append([x+1, y-1])
+            # En Passant
+            if [x+1, y-1] in self.board.enPassant:
+                allMoves.append([x+1, y-1])
+            if [x-1, y-1] in self.board.enPassant:
+                allMoves.append([x-1, y-1])
         return allMoves
 
 
 class Rook(Piece):
     def __init__(self, coord, colour, board):
         Piece.__init__(self, coord, colour, board)
-        self.hasMoved = False    # To keep track if it moved (for castling)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Rook.png')
         self.resize()
@@ -397,7 +420,6 @@ class Bishop(Piece):
 class King(Piece):
     def __init__(self, coord, colour, board):
         Piece.__init__(self, coord, colour, board)
-        self.hasMoved = False    # To keep track if it moved (for castling)
         # Graphics
         self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'King.png')
         self.resize()

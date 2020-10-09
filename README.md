@@ -10,6 +10,7 @@ What is done:
 - [x] Checks
 - [x] Checkmate
 - [x] Show possible moves on screen
+- [x] Make svg files for each of the pieces
 
 What must be done:
 - [ ] Castle
@@ -18,5 +19,4 @@ What must be done:
 - [ ] Implement deep learning bot
 
 What could be done:
-- [ ] Make svg files for each of the pieces
 - [ ] Make the graphics scaling with the window

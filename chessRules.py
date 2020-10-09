@@ -46,7 +46,7 @@ class Board:
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
             self.array[moveTo[0], moveTo[1]].coord = moveTo
-            # If Pawn on last rank: Promote
+            # If Pawn on first/last rank: Promote
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
                 if ((self.array[moveTo[0], moveTo[1]].colour == 'black' and moveTo[1] == 0) or
                         (self.array[moveTo[0], moveTo[1]].colour == 'white' and moveTo[1] == self.boardSize-1)):
@@ -119,12 +119,11 @@ class Board:
 
     def checkmate(self, colour):
         checkmate = True
-        for i in range(self.boardSize):
-            for j in range(self.boardSize):
-                if isinstance(self.array[i, j], Piece) and self.array[i, j].colour == colour:
-                    if self.array[i, j].possibleMoves():
-                        checkmate = False
-                        break
+        for column in self.array:
+            for square in column:
+                if isinstance(square, Piece) and square.colour == colour and square.possibleMoves():
+                    checkmate = False
+                    break
         return checkmate
 
     def print(self):

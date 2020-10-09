@@ -14,8 +14,8 @@ class GraphicsInterface():
         self.width = 900
         self.bgColor = '#F7F7F7'
         self.boardSize = 8
-        self.squareSize = np.min([(self.width-2*self.padx) // self.boardSize,
-                                  (self.height-2*self.pady) // self.boardSize])
+        self.squareSize = np.min([(self.width - 2 * self.padx) // self.boardSize,
+                                  (self.height - 2 * self.pady) // self.boardSize])
         self.color1 = '#E3C3A5'
         self.color2 = '#794532'
         self.pathImages = './images/'
@@ -56,44 +56,43 @@ class GraphicsInterface():
     def createCheckerboard(self):
         for i in range(0, self.boardSize):
             for j in range(0, self.boardSize):
-                if (i+j) % 2 == 0:
+                if (i + j) % 2 == 0:
                     color = self.color1
                 else:
                     color = self.color2
-                self.canvas.create_rectangle(self.padx+i*self.squareSize, self.pady+j*self.squareSize,
-                                             self.padx+(i+1)*self.squareSize, self.pady +
-                                             (j+1)*self.squareSize,
-                                             fill=color)
+                self.canvas.create_rectangle(self.padx + i * self.squareSize, self.pady + j * self.squareSize,
+                                             self.padx + (i + 1) * self.squareSize, self.pady + (j + 1)
+                                             * self.squareSize, fill=color)
 
     def showPossibleMoves(self):
         for coord in self.board.array[self.click[0], self.click[1]].possibleMoves():
-            imgWidget = PhotoImage(file=self.pathImages+'possibleMove.png')
+            imgWidget = PhotoImage(file=self.pathImages + 'possibleMove.png')
             self.possibleMovesWidget.append(imgWidget)
             X, Y = self.coordToPixel(coord[0], coord[1])
             img = self.canvas.create_image((X, Y), image=imgWidget)
             self.possibleMovesImg.append(img)
 
     def showCheckmate(self):
-        rw = 4*self.squareSize
-        rh = 1.5*self.squareSize
+        rw = 4 * self.squareSize
+        rh = 1.5 * self.squareSize
         bgColour = "#ACA7A6"
         w = (self.width // 2) - rw // 2
         h = (self.height // 2) - rh // 2
 
-        self.round_rectangle(w, h, w+rw, h+rh, r=self.squareSize//2, fill=bgColour)
-        self.canvas.create_text(self.width//2, self.height//2,
+        self.round_rectangle(w, h, w + rw, h + rh, r=self.squareSize // 2, fill=bgColour)
+        self.canvas.create_text(self.width // 2, self.height // 2,
                                 text=f'{self.selectedPiece.colour} won!'.title(),
                                 font=("Helvetica", 40))
 
     def coordToPixel(self, x, y):
         # Returns center of square at coord [x, y] in Pixels
-        xPix = self.padx+(x+0.5)*self.squareSize
-        yPix = self.pady+(self.boardSize-1-y+0.5)*self.squareSize
+        xPix = self.padx + (x + 0.5) * self.squareSize
+        yPix = self.pady + (self.boardSize - 1 - y + 0.5) * self.squareSize
         return xPix, yPix
 
     def pixelToCoord(self, x, y):
-        x = int(np.floor((x-self.padx)/self.squareSize))
-        y = int(self.boardSize-1-np.floor((y-self.pady)/self.squareSize))
+        x = int(np.floor((x - self.padx) / self.squareSize))
+        y = int(self.boardSize - 1 - np.floor((y - self.pady) / self.squareSize))
         if x < 0 or x >= self.boardSize or y < 0 or y >= self.boardSize:
             x = []
             y = []
@@ -109,7 +108,7 @@ class GraphicsInterface():
     def drag(self, event):
         if isinstance(self.selectedPiece, Piece):
             xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
-            self.canvas.move(self.selectedPiece.Image, event.x-xMid, event.y-yMid)
+            self.canvas.move(self.selectedPiece.Image, event.x - xMid, event.y - yMid)
 
     def released(self, event):
         if isinstance(self.selectedPiece, Piece):

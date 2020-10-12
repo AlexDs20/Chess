@@ -12,9 +12,9 @@ What is done:
 - [x] Show possible moves on screen
 - [x] Make svg files for each of the pieces
 - [x] En passant
+- [x] Castle
 
 What must be done:
-- [ ] Castle
 - [ ] Black and white must play alternatively
 - [ ] Implement deep learning bot
 

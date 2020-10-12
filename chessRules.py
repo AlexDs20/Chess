@@ -47,6 +47,7 @@ class Board:
         if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
+
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
                 # If Pawn on first/last rank: Promote
                 if ((self.array[moveTo[0], moveTo[1]].colour == 'black' and moveTo[1] == 0) or
@@ -65,8 +66,24 @@ class Board:
                         self.enPassant = [[moveTo[0], moveTo[1]-1]]
                     else:
                         self.enPassant = [[moveTo[0], moveTo[1]+1]]
-                print(self.enPassant)
             self.array[moveTo[0], moveTo[1]].updateMove(moveTo)
+
+            if isinstance(self.array[moveTo[0], moveTo[1]], King) and abs(moveTo[0] - moveFrom[0]) == 2:
+                if moveTo[0] - moveFrom[0] == -2:
+                    # Castle Queen side
+                    rookFrom = [0, moveTo[1]]
+                    rookTo = [moveTo[0]+1, moveTo[1]]
+                elif moveTo[0] - moveFrom[0] == 2:
+                    # Castle King side
+                    rookFrom = [self.boardSize-1, moveTo[1]]
+                    rookTo = [moveTo[0]-1, moveTo[1]]
+
+                self.array[rookTo[0], rookTo[1]] = self.array[rookFrom[0], rookFrom[1]]
+                self.array[rookFrom[0], rookFrom[1]] = None
+                self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
+                # Move rook on the UI
+                X, Y = self.UI.coordToPixel(rookTo[0], rookTo[1])
+                self.UI.canvas.coords(self.array[rookTo[0], rookTo[1]].Image, [X, Y])
 
     def promotePawn(self, coord, promoteTo):
         """
@@ -106,24 +123,22 @@ class Board:
         check = False
         for i in range(self.boardSize):
             for j in range(self.boardSize):
-                if (self.array[i, j] is not None and self.array[i, j].otherColour == colour):
-                    moves = self.array[i, j].allMoves().copy()
-                    if isinstance(self.array[i, j], King):
-                        pass
-                    if isinstance(self.array[i, j], Pawn):
-                        if self.array[i, j].colour == 'white':
-                            if [i, j+1] in moves:
-                                moves.remove([i, j+1])
-                            if [i, j+2] in moves:
-                                moves.remove([i, j+2])
-                        elif self.array[i, j].colour == 'black':
-                            if [i, j-1] in moves:
-                                moves.remove([i, j-1])
-                            if [i, j-2] in moves:
-                                moves.remove([i, j-2])
-                    if coord in moves:
-                        check = True
-                        break
+                square = self.array[i, j]
+                if square is not None and not isinstance(square, King):
+                    # only check the pieces of the other colour
+                    if square.otherColour == colour:
+                        moves = self.array[i, j].allMoves().copy()
+                        if [i, j+1] in moves:
+                            moves.remove([i, j+1])
+                        if [i, j+2] in moves:
+                            moves.remove([i, j+2])
+                        if [i, j-1] in moves:
+                            moves.remove([i, j-1])
+                        if [i, j-2] in moves:
+                            moves.remove([i, j-2])
+                        if coord in moves:
+                            check = True
+                            break
         return check
 
     def checkmate(self, colour):
@@ -190,13 +205,15 @@ class Piece:
         """
         From all the moves (allMoves), remove those that are such that the king is in check
 
-        TODO: This needs to be better implemented! But with all these variables that acts effectively as pointers ...
+        TODO: to better implemented!
+                the moves are not correct. Should use the self.board.move function.
         """
         moves = self.allMoves().copy()
         initPiece = copy.copy(self)
         moveFrom = initPiece.coord
         for m in self.allMoves().copy():
             endPiece = copy.copy(self.board.array[m[0], m[1]])
+            # self.board.move(moveFrom, m)
             self.board.array[m[0], m[1]] = copy.copy(self)
             self.board.array[m[0], m[1]].coord = m
             self.board.array[moveFrom[0], moveFrom[1]] = None
@@ -211,7 +228,6 @@ class Piece:
 
             if check is True:
                 moves.remove(m)
-
         return moves
 
 
@@ -457,18 +473,27 @@ class King(Piece):
             allMoves.append([x-1, y-1])
 
 #        # Castling
-#        if not self.hasMoved:
-#            # Castle King side
-#            for i in range(x+1, boardSize+1):
-#                castle = True
-#                if self.board.array[i, y] is None or \
-#                    (isinstance(self.board.array[i, y], Rook) and not self.board.array[i, y].hasMoved):
-#                        if i != boardSize and not self.board.isCheck([i, y], self.colour):
-#                            continue
-#                else:
-#                    castle = False
-#            if castle == True:
-#                allMoves.append([x+2, y])
+        if not self.hasMoved:
+            # King Side
+            castle = True
+            if not isinstance(array[boardSize, y], Rook) or (isinstance(array[boardSize, y], Rook) and
+                                                             array[boardSize, y].hasMoved):
+                castle = False
+            for i in range(x + 1, x + 3):
+                if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
+                    castle = False
+            if castle:
+                allMoves.append([x + 2, y])
+            # Queen Side
+            castle = True
+            if not isinstance(array[0, y], Rook) or (isinstance(array[0, y], Rook) and
+                                                     array[0, y].hasMoved):
+                castle = False
+            for i in range(x - 1, x - 4, -1):
+                if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
+                    castle = False
+            if castle:
+                allMoves.append([x - 2, y])
         return allMoves
 
 

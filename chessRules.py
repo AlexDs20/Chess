@@ -90,16 +90,16 @@ class Board:
         Promote pawn to desired piece.
         TODO: GUI for suggesting which piece
         """
-        if promoteTo == "Queen":
+        if promoteTo.lower() == "queen":
             self.array[coord[0], coord[1]] = Queen(
                 [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
-        elif promoteTo == "Rook":
+        elif promoteTo.lower() == "rook":
             self.array[coord[0], coord[1]] = Rook(
                 [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
-        elif promoteTo == "Knight":
+        elif promoteTo.lower() == "knight":
             self.array[coord[0], coord[1]] = Knight(
                 [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
-        elif promoteTo == "Bishop":
+        elif promoteTo.lower() == "bishop":
             self.array[coord[0], coord[1]] = Bishop(
                 [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
 

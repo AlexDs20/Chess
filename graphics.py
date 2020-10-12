@@ -23,6 +23,8 @@ class GraphicsInterface():
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
+        self.turn = 0
+
         self.click = np.empty(2, dtype=int)
         self.realeased = np.empty(2, dtype=int)
         self.selectedPiece = []
@@ -102,6 +104,9 @@ class GraphicsInterface():
         self.click = self.pixelToCoord(event.x, event.y)
         if self.click:
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]
+            if ((self.turn % 2 == 0 and self.selectedPiece.colour == 'black') or
+                (self.turn % 2 == 1 and self.selectedPiece.colour == 'white')):
+                self.selectedPiece = []
             if isinstance(self.selectedPiece, Piece):
                 self.showPossibleMoves()
 
@@ -118,6 +123,9 @@ class GraphicsInterface():
                     self.board.move([self.click[0], self.click[1]], [
                                     self.released[0], self.released[1]])
                     xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+                    if self.released != self.click:
+                        # To alternate who plays
+                        self.turn += 1
                     if self.board.checkmate(self.selectedPiece.otherColour):
                         self.showCheckmate()
                 else:

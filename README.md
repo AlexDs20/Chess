@@ -13,9 +13,9 @@ What is done:
 - [x] Make svg files for each of the pieces
 - [x] En passant
 - [x] Castle
+- [x] Black and white must play alternatively
 
 What must be done:
-- [ ] Black and white must play alternatively
 - [ ] Implement deep learning bot
 
 What could be done:

@@ -44,7 +44,7 @@ class Board:
         + Pawn promotion
         and remember if either the king or the rook moved as it forbids castling
         """
-        if moveTo in self.array[moveFrom[0], moveFrom[1]].allMoves():
+        if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
 
@@ -121,13 +121,11 @@ class Board:
         Needed for castle, checks and checkmate
         """
         check = False
-        for i in range(self.boardSize):
-            for j in range(self.boardSize):
-                square = self.array[i, j]
-                if square is not None and not isinstance(square, King):
-                    # only check the pieces of the other colour
-                    if square.otherColour == colour:
-                        moves = self.array[i, j].allMoves().copy()
+        for i, col in enumerate(self.array):
+            for j, square in enumerate(col):
+                if square is not None and square.colour != colour:
+                    moves = square.baseMoves().copy()
+                    if isinstance(square, Pawn):
                         if [i, j+1] in moves:
                             moves.remove([i, j+1])
                         if [i, j+2] in moves:
@@ -136,9 +134,9 @@ class Board:
                             moves.remove([i, j-1])
                         if [i, j-2] in moves:
                             moves.remove([i, j-2])
-                        if coord in moves:
-                            check = True
-                            break
+                    if coord in moves:
+                        check = True
+                        break
         return check
 
     def checkmate(self, colour):
@@ -208,10 +206,10 @@ class Piece:
         TODO: to better implemented!
                 the moves are not correct. Should use the self.board.move function.
         """
-        moves = self.allMoves().copy()
+        moves = self.baseMoves().copy()
         initPiece = copy.copy(self)
         moveFrom = initPiece.coord
-        for m in self.allMoves().copy():
+        for m in self.baseMoves().copy():
             endPiece = copy.copy(self.board.array[m[0], m[1]])
             # self.board.move(moveFrom, m)
             self.board.array[m[0], m[1]] = copy.copy(self)
@@ -228,6 +226,11 @@ class Piece:
 
             if check is True:
                 moves.remove(m)
+
+        if isinstance(self, King):
+            castlingMoves = self.castleMoves()
+            moves.append(castlingMoves)
+            moves = [x for x in moves if x]
         return moves
 
 
@@ -240,7 +243,8 @@ class Pawn(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
+    def baseMoves(self):
+    #def allMoves(self):
         """
         TODO: Need to include en passant moves but for that need to save previous moves
         """
@@ -294,7 +298,8 @@ class Rook(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
+    def baseMoves(self):
+    #def allMoves(self):
         allMoves = []
         array = self.board.array
         boardSize = self.board.boardSize
@@ -346,7 +351,8 @@ class Knight(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
+    def baseMoves(self):
+    #def allMoves(self):
         allMoves = []
         array = self.board.array
         x = self.coord[0]
@@ -388,7 +394,8 @@ class Bishop(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
+    def baseMoves(self):
+    #def allMoves(self):
         allMoves = []
         array = self.board.array
         boardSize = self.board.boardSize-1
@@ -442,7 +449,8 @@ class King(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
+    def baseMoves(self):
+    #def allMoves(self):
         # TODO: Castling
         allMoves = []
         array = self.board.array
@@ -471,8 +479,17 @@ class King(Piece):
         if (x-1 >= 0 and y-1 >= 0 and
                 (array[x-1, y-1] is None or array[x-1, y-1].colour == self.otherColour)):
             allMoves.append([x-1, y-1])
+        return allMoves
 
-#        # Castling
+    def castleMoves(self):
+        """
+            All moves are the base moves + castling.
+        """
+        moves = []
+        array = self.board.array
+        boardSize = self.board.boardSize-1
+        x = self.coord[0]
+        y = self.coord[1]
         if not self.hasMoved:
             # King Side
             castle = True
@@ -483,7 +500,7 @@ class King(Piece):
                 if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
                     castle = False
             if castle:
-                allMoves.append([x + 2, y])
+                moves.extend([x + 2, y])
             # Queen Side
             castle = True
             if not isinstance(array[0, y], Rook) or (isinstance(array[0, y], Rook) and
@@ -493,9 +510,8 @@ class King(Piece):
                 if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
                     castle = False
             if castle:
-                allMoves.append([x - 2, y])
-        return allMoves
-
+                moves.extend([x - 2, y])
+        return moves
 
 class Queen(Piece):
     def __init__(self, coord, colour, board):
@@ -506,8 +522,9 @@ class Queen(Piece):
         X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
         self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
 
-    def allMoves(self):
-        moveRook = Rook(self.coord, self.colour, self.board).allMoves()
-        moveBishop = Bishop(self.coord, self.colour, self.board).allMoves()
+    def baseMoves(self):
+    #def allMoves(self):
+        moveRook = Rook(self.coord, self.colour, self.board).baseMoves()
+        moveBishop = Bishop(self.coord, self.colour, self.board).baseMoves()
         moveRook.extend(moveBishop)
         return moveRook

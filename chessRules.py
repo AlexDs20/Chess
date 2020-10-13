@@ -55,10 +55,11 @@ class Board:
                     promoteTo = input('Promote into a:')
                     self.promotePawn(moveTo, promoteTo)
                 # If pawn moves en passant: remove pawn
-                if self.array[moveTo[0], moveTo[1]].colour == 'white':
-                    self.array[moveTo[0], moveTo[1]-1] = None
-                else:
-                    self.array[moveTo[0], moveTo[1]+1] = None
+                if moveTo in self.enPassant:
+                    if self.array[moveTo[0], moveTo[1]].colour == 'white':
+                        self.array[moveTo[0], moveTo[1]-1] = None
+                    else:
+                        self.array[moveTo[0], moveTo[1]+1] = None
                 # If enPassant possible: save where the next pawn can go
                 self.enPassant = []
                 if abs(moveTo[1]-moveFrom[1]) == 2:

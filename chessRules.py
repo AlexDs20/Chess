@@ -257,7 +257,7 @@ class Pawn(Piece):
         if self.colour == 'white':
             if array[x, y+1] is None:
                 allMoves.append([x, y+1])
-            if y == 1 and array[x, y+2] is None:
+            if y == 1 and all(pos == None for pos in array[x, y+1: y+3]):
                 allMoves.append([x, y+2])
             # Captures
             if (x >= 1 and
@@ -274,7 +274,7 @@ class Pawn(Piece):
         elif self.colour == 'black':
             if array[x, y-1] is None:
                 allMoves.append([x, y-1])
-            if y == boardSize-1 and array[x, y-2] is None:
+            if y == boardSize-1 and all(pos == None for pos in array[x, y-1: y-3]):
                 allMoves.append([x, y-2])
             if (x >= 1 and
                     isinstance(array[x-1, y-1], Piece) and array[x-1, y-1].colour == 'white'):

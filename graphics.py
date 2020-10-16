@@ -1,7 +1,10 @@
 #!/bin/python3
 import numpy as np
 from tkinter import Tk, Canvas, PhotoImage
-from chessRules import Board, Piece
+
+#from chessRules import *
+from board import Board
+from pieces import *
 
 
 class GraphicsInterface():
@@ -104,8 +107,9 @@ class GraphicsInterface():
         self.click = self.pixelToCoord(event.x, event.y)
         if self.click:
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]
-            if ((self.turn % 2 == 0 and self.selectedPiece.colour == 'black') or
-                (self.turn % 2 == 1 and self.selectedPiece.colour == 'white')):
+            if (isinstance(self.selectedPiece, Piece) and
+                ((self.turn % 2 == 0 and self.selectedPiece.colour == 'black') or
+                (self.turn % 2 == 1 and self.selectedPiece.colour == 'white'))):
                 self.selectedPiece = []
             if isinstance(self.selectedPiece, Piece):
                 self.showPossibleMoves()

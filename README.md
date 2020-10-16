@@ -1,6 +1,24 @@
 # Chess
 A chess game in python
 
+# How to play you ask?
+**1. Clone the project:**
+```
+git clone https://github.com/AlexDs20/Chess
+```
+**2. Start the game:**
+
+There are two possibilities.
+Either you make it executable and run it:
+```
+chmod +x main.py
+./main.py
+```
+or you can run it with python3 directly:
+```
+python3 main.py
+```
+
 ## In Development
 What is done:
 - [x] Basic motion of the pieces

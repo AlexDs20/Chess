@@ -25,7 +25,7 @@ class GraphicsInterface():
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
-        self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e3 0 1'
 
         self.turn = 0
 
@@ -73,8 +73,8 @@ class GraphicsInterface():
         j = self.boardSize-1
         for s in fen:
             if s.isnumeric():
-                self.Images[i: i+int(s)+1, j] = None
-                self.Pieces[i: i+int(s)+1, j] = None
+                self.Images[i:i+int(s)+1, j] = None
+                self.Pieces[i:i+int(s)+1, j] = None
                 i += int(s)
                 continue
             x, y = self.coordToPixel(i, j)
@@ -140,8 +140,9 @@ class GraphicsInterface():
             self.possibleMovesImg.append(img)
 
     def movePiecesGraphics(self, shift):
+        # Snap the piece to the right square and set the graphical board in the right config
         self.canvas.coords(self.Pieces[self.click[0], self.click[1]], shift)
-        self.placePieces(self.board.write_fen())
+        self.placePieces(self.board.getFEN())
 
     def coordToPixel(self, x, y):
         # Returns center of square at coord [x, y] in Pixels
@@ -158,6 +159,7 @@ class GraphicsInterface():
         return x, y
 
     def clicked(self, event):
+        print(self.board.getFEN())
         self.click = self.pixelToCoord(event.x, event.y)
         if self.click:
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]

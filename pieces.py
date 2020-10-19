@@ -85,9 +85,9 @@ class Pawn(Piece):
                     isinstance(array[x+1, y+1], Piece) and array[x+1, y+1].colour == 'black'):
                 allMoves.append([x+1, y+1])
             # En Passant
-            if [x+1, y+1] in self.board.enPassant:
+            if [x+1, y+1] in [self.board.enPassant]:
                 allMoves.append([x+1, y+1])
-            if [x-1, y+1] in self.board.enPassant:
+            if [x-1, y+1] in [self.board.enPassant]:
                 allMoves.append([x-1, y+1])
         elif self.colour == 'black':
             if array[x, y-1] is None:
@@ -101,9 +101,9 @@ class Pawn(Piece):
                     isinstance(array[x+1, y-1], Piece) and array[x+1, y-1].colour == 'white'):
                 allMoves.append([x+1, y-1])
             # En Passant
-            if [x+1, y-1] in self.board.enPassant:
+            if [x+1, y-1] in [self.board.enPassant]:
                 allMoves.append([x+1, y-1])
-            if [x-1, y-1] in self.board.enPassant:
+            if [x-1, y-1] in [self.board.enPassant]:
                 allMoves.append([x-1, y-1])
         return allMoves
 

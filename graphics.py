@@ -2,9 +2,8 @@
 import numpy as np
 from tkinter import Tk, Canvas, PhotoImage
 
-#from chessRules import *
 from board import Board
-from pieces import *
+from pieces import Piece
 
 
 class GraphicsInterface():
@@ -26,6 +25,8 @@ class GraphicsInterface():
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
+        self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
         self.turn = 0
 
         self.click = np.empty(2, dtype=int)
@@ -42,7 +43,8 @@ class GraphicsInterface():
 
         # Setup board
         self.createCheckerboard()
-        self.board = Board(self)
+        self.board = Board(self.boardSize, self.initFEN)
+        self.placePieces(self.initFEN)
 
         # Click actions
         self.canvas.bind("<Button-1>", self.clicked)
@@ -51,12 +53,6 @@ class GraphicsInterface():
 
         # Main loop
         self.root.mainloop()
-
-    def round_rectangle(self, x1, y1, x2, y2, r, **kwargs):
-        points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2,
-                  y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r,
-                  x1, y1+r, x1, y1+r, x1, y1)
-        return self.canvas.create_polygon(points, **kwargs, smooth=True)
 
     def createCheckerboard(self):
         for i in range(0, self.boardSize):
@@ -69,13 +65,59 @@ class GraphicsInterface():
                                              self.padx + (i + 1) * self.squareSize, self.pady + (j + 1)
                                              * self.squareSize, fill=color)
 
-    def showPossibleMoves(self):
-        for coord in self.board.array[self.click[0], self.click[1]].possibleMoves():
-            imgWidget = PhotoImage(file=self.pathImages + 'possibleMove.png')
-            self.possibleMovesWidget.append(imgWidget)
-            X, Y = self.coordToPixel(coord[0], coord[1])
-            img = self.canvas.create_image((X, Y), image=imgWidget)
-            self.possibleMovesImg.append(img)
+    def placePieces(self, fen):
+        """
+        Places graphical pieces according to fen configuration
+        """
+        i = 0
+        j = self.boardSize-1
+        for s in fen:
+            if s.isnumeric():
+                self.Images[i: i+int(s)+1, j] = None
+                self.Pieces[i: i+int(s)+1, j] = None
+                i += int(s)
+                continue
+            x, y = self.coordToPixel(i, j)
+            if s.isupper():
+                colour = 'white'
+            else:
+                colour = 'black'
+            if s.lower() == 'p':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Pawn.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            elif s.lower() == 'r':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Rook.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            elif s.lower() == 'n':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Knight.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            elif s.lower() == 'b':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Bishop.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            elif s.lower() == 'q':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Queen.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            elif s.lower() == 'k':
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'King.png')
+                self.Pieces[i, j] = self.canvas.create_image((x, y),
+                                                             image=self.Images[i, j])
+            i += 1
+            if s == '/':
+                j -= 1
+                i = 0
+            if s == ' ':
+                break
+
+    def round_rectangle(self, x1, y1, x2, y2, r, **kwargs):
+        points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2,
+                  y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r,
+                  x1, y1+r, x1, y1+r, x1, y1)
+        return self.canvas.create_polygon(points, **kwargs, smooth=True)
 
     def showCheckmate(self):
         rw = 4 * self.squareSize
@@ -88,6 +130,18 @@ class GraphicsInterface():
         self.canvas.create_text(self.width // 2, self.height // 2,
                                 text=f'{self.selectedPiece.colour} won!'.title(),
                                 font=("Helvetica", 40))
+
+    def showPossibleMoves(self):
+        for coord in self.board.array[self.click[0], self.click[1]].possibleMoves():
+            imgWidget = PhotoImage(file=self.pathImages + 'possibleMove.png')
+            self.possibleMovesWidget.append(imgWidget)
+            X, Y = self.coordToPixel(coord[0], coord[1])
+            img = self.canvas.create_image((X, Y), image=imgWidget)
+            self.possibleMovesImg.append(img)
+
+    def movePiecesGraphics(self, shift):
+        self.canvas.coords(self.Pieces[self.click[0], self.click[1]], shift)
+        self.placePieces(self.board.write_fen())
 
     def coordToPixel(self, x, y):
         # Returns center of square at coord [x, y] in Pixels
@@ -109,15 +163,15 @@ class GraphicsInterface():
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]
             if (isinstance(self.selectedPiece, Piece) and
                 ((self.turn % 2 == 0 and self.selectedPiece.colour == 'black') or
-                (self.turn % 2 == 1 and self.selectedPiece.colour == 'white'))):
+                 (self.turn % 2 == 1 and self.selectedPiece.colour == 'white'))):
                 self.selectedPiece = []
             if isinstance(self.selectedPiece, Piece):
                 self.showPossibleMoves()
 
     def drag(self, event):
         if isinstance(self.selectedPiece, Piece):
-            xMid, yMid = self.canvas.coords(self.selectedPiece.Image)
-            self.canvas.move(self.selectedPiece.Image, event.x - xMid, event.y - yMid)
+            xMid, yMid = self.canvas.coords(self.Pieces[self.click[0], self.click[1]])
+            self.canvas.move(self.Pieces[self.click[0], self.click[1]], event.x - xMid, event.y - yMid)
 
     def released(self, event):
         if isinstance(self.selectedPiece, Piece):
@@ -134,13 +188,9 @@ class GraphicsInterface():
                         self.showCheckmate()
                 else:
                     xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
-                self.canvas.coords(self.selectedPiece.Image, [xBoard, yBoard])
+                self.movePiecesGraphics([xBoard, yBoard])
             self.possibleMovesWidget = []
             self.possibleMovesImg = []
         self.selectedPiece = []
         self.click = np.empty(2, dtype=int)
         self.released = np.empty(2, dtype=int)
-
-
-if __name__ == '__main__':
-    GraphicsInterface()

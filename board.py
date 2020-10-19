@@ -3,37 +3,58 @@ from pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
-    def __init__(self, UI):
-        self.boardSize = UI.boardSize
-        self.UI = UI
-        self.initBoard()
+    """
+    Board class
+
+    TODO: function to return a list of boards where the next possible move has been done
+          function to evaluate the state of the board (who is winning)
+    """
+
+    def __init__(self, boardSize, fen):
+        self.boardSize = boardSize
+        self.initBoard(fen)
         self.enPassant = []
+        self.lastPiecesMoved = []
+
         # Not used
         self.info = {"a": 0, "b": 1, "c": 2, "d": 3,
                      "e": 4, "f": 5, "g": 6, "h": 7}
 
-    def initBoard(self):
+    def initBoard(self, fen):
+        """
+        Initiate the board for the given configuration
+        TODO: implement the additional properties in the FEN format, not just the pieces posiitons
+        """
         self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
+        i = 0
+        j = self.boardSize-1
+        for s in fen:
+            if s.isnumeric():
+                i += int(s)
+                continue
+            if s.isupper():
+                colour = 'white'
+            else:
+                colour = 'black'
 
-        for i in range(self.boardSize):
-            self.array[i, 1] = Pawn([i, 1], 'white', self)
-            self.array[i, self.boardSize-2] = Pawn([i, self.boardSize-2], 'black', self)
-        self.array[0, 0] = Rook([0, 0], 'white', self)
-        self.array[7, 0] = Rook([7, 0], 'white', self)
-        self.array[1, 0] = Knight([1, 0], 'white', self)
-        self.array[6, 0] = Knight([6, 0], 'white', self)
-        self.array[2, 0] = Bishop([2, 0], 'white', self)
-        self.array[5, 0] = Bishop([5, 0], 'white', self)
-        self.array[3, 0] = Queen([3, 0], 'white', self)
-        self.array[4, 0] = King([4, 0], 'white', self)
-        self.array[0, self.boardSize-1] = Rook([0, self.boardSize-1], 'black', self)
-        self.array[7, self.boardSize-1] = Rook([7, self.boardSize-1], 'black', self)
-        self.array[1, self.boardSize-1] = Knight([1, self.boardSize-1], 'black', self)
-        self.array[6, self.boardSize-1] = Knight([6, self.boardSize-1], 'black', self)
-        self.array[2, self.boardSize-1] = Bishop([2, self.boardSize-1], 'black', self)
-        self.array[5, self.boardSize-1] = Bishop([5, self.boardSize-1], 'black', self)
-        self.array[3, self.boardSize-1] = Queen([3, self.boardSize-1], 'black', self)
-        self.array[4, self.boardSize-1] = King([4, self.boardSize-1], 'black', self)
+            if s.lower() == 'p':
+                self.array[i, j] = Pawn([i, j], colour, self)
+            elif s.lower() == 'r':
+                self.array[i, j] = Rook([i, j], colour, self)
+            elif s.lower() == 'n':
+                self.array[i, j] = Knight([i, j], colour, self)
+            elif s.lower() == 'b':
+                self.array[i, j] = Bishop([i, j], colour, self)
+            elif s.lower() == 'q':
+                self.array[i, j] = Queen([i, j], colour, self)
+            elif s.lower() == 'k':
+                self.array[i, j] = King([i, j], colour, self)
+            i += 1
+            if s == '/':
+                j -= 1
+                i = 0
+            if s == ' ':
+                break
 
     def move(self, moveFrom, moveTo):
         """
@@ -42,6 +63,11 @@ class Board:
         and remember if either the king or the rook moved as it forbids castling
         """
         if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
+            # Append the piece at start and end of the move to move back if needed
+            self.lastPiecesMoved = []
+            self.lastPiecesMoved.append(self.array[moveTo[0], moveTo[1]])
+            self.lastPiecesMoved.append(self.array[moveFrom[0], moveFrom[1]])
+
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
 
@@ -76,12 +102,22 @@ class Board:
                     rookFrom = [self.boardSize-1, moveTo[1]]
                     rookTo = [moveTo[0]-1, moveTo[1]]
 
+                # Save the move
+                self.lastPiecesMoved.append(self.array[rookTo[0], rookTo[1]])
+                self.lastPiecesMoved.append(self.array[rookFrom[0], rookFrom[1]])
+
+                # Make move
                 self.array[rookTo[0], rookTo[1]] = self.array[rookFrom[0], rookFrom[1]]
                 self.array[rookFrom[0], rookFrom[1]] = None
                 self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
-                # Move rook on the UI
-                X, Y = self.UI.coordToPixel(rookTo[0], rookTo[1])
-                self.UI.canvas.coords(self.array[rookTo[0], rookTo[1]].Image, [X, Y])
+
+    def undoMove(self):
+        """
+        Undo the last move
+        """
+        for piece in self.lastPiecesMoved:
+            if isinstance(piece, Piece):
+                self.array[piece.coord[0], piece.coord[1]] = piece
 
     def promotePawn(self, coord, promoteTo):
         """
@@ -146,22 +182,103 @@ class Board:
                     break
         return checkmate
 
-    def print(self):
-        checkerBoard = np.zeros([self.boardSize, self.boardSize])
+    def eval(self):
+        """
+        Evaluates the state of the board
+        """
+        evaluation = 0
+        for col in self.array:
+            for square in col:
+                if isinstance(square, Piece):
+                    if square.colour == 'white':
+                        evaluation += square.value
+                    else:
+                        evaluation -= square.value
+        return evaluation
+
+    def nextConfigs(self):
+        """
+        Return a list of boards where the next possible move is already played
+        Each returned board are obtained from a different move
+        """
+        Configs = []
+        for i, col in enumerate(self.array):
+            for j, square in enumerate(col):
+                if isinstance(square, Piece):
+                    moves = square.possibleMoves()
+                    for m in moves:
+                        # b = copy.deepcopy(self)
+                        # b.move([i, j], m)
+                        # b.undoMove()
+                        pass
+        return Configs
+
+    def write_fen(self):
+        """
+        Returns the configuration of the board in the Forsyth-Edwards Notation
+        TODO: add final properties
+        """
+        b = ''
+        for i in range(self.boardSize-1, -1, -1):
+            empty = 0
+            for j in range(self.boardSize):
+                square = self.array[j, i]
+                if isinstance(square, Piece) and empty != 0:
+                    b += str(empty)
+                    empty = 0
+                if isinstance(square, Pawn):
+                    b += 'p'
+                elif isinstance(square, Rook):
+                    b += 'r'
+                elif isinstance(square, Knight):
+                    b += 'n'
+                elif isinstance(square, Bishop):
+                    b += 'b'
+                elif isinstance(square, King):
+                    b += 'k'
+                elif isinstance(square, Queen):
+                    b += 'q'
+                elif square is None:
+                    empty += 1
+                if isinstance(square, Piece) and square.colour == 'white':
+                    b = b[0: -1] + b[-1].upper()
+            if empty != 0:
+                b += str(empty)
+                empty = 0
+            b += '/'
+
+        # whose turn to play: 'w' or 'b'
+        # Castling: 'K', 'Q', 'k', 'q', or '-'
+        # En passant target square e.g. 'e3', if not '-'
+        # number of half moves since capture (to implement 50 moves rule)
+        # Fullmove number: start at 1 and increase after each black move
+        return b
+
+    def read_fen(self):
+        """
+        Reads the fen format and set the board in that state
+        """
+        pass
+
+    def __str__(self):
+        checkerBoard = np.zeros([self.boardSize, self.boardSize], dtype=str)
         for i in range(self.boardSize):
             for j in range(self.boardSize):
                 if isinstance(self.array[i, j], Pawn):
-                    checkerBoard[i, j] = 1
+                    checkerBoard[i, j] = 'p'
                 elif isinstance(self.array[i, j], Rook):
-                    checkerBoard[i, j] = 2
+                    checkerBoard[i, j] = 'r'
                 elif isinstance(self.array[i, j], Knight):
-                    checkerBoard[i, j] = 3
+                    checkerBoard[i, j] = 'n'
                 elif isinstance(self.array[i, j], Bishop):
-                    checkerBoard[i, j] = 4
+                    checkerBoard[i, j] = 'b'
                 elif isinstance(self.array[i, j], King):
-                    checkerBoard[i, j] = 5
+                    checkerBoard[i, j] = 'k'
                 elif isinstance(self.array[i, j], Queen):
-                    checkerBoard[i, j] = 6
+                    checkerBoard[i, j] = 'q'
                 elif self.array[i, j] is not None:
-                    checkerBoard[i, j] = 9
-        print(checkerBoard)
+                    checkerBoard[i, j] = 0
+                if (isinstance(self.array[i, j], Piece) and
+                   self.array[i, j].colour == 'white'):
+                    checkerBoard[i, j] = checkerBoard[i, j].upper()
+        return np.array_str(checkerBoard)

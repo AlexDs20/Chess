@@ -1,4 +1,3 @@
-from tkinter import PhotoImage
 import copy
 
 
@@ -14,10 +13,6 @@ class Piece:
 
         self.coord = coord
         self.board = board
-
-        # Graphics
-        self.displayImage = None       # Created with PhotoImage
-        self.Image = None              # Created with canvas.create_image
 
     def updateMove(self, moveTo):
         self.coord = moveTo
@@ -68,14 +63,6 @@ class Piece:
 
 
 class Pawn(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Pawn.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         """
         TODO: Need to include en passant moves but for that need to save previous moves
@@ -122,14 +109,6 @@ class Pawn(Piece):
 
 
 class Rook(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Rook.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -174,14 +153,6 @@ class Rook(Piece):
 
 
 class Knight(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Knight.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -216,14 +187,6 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Bishop.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -270,14 +233,6 @@ class Bishop(Piece):
 
 
 class King(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'King.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         # TODO: Castling
         allMoves = []
@@ -343,14 +298,6 @@ class King(Piece):
 
 
 class Queen(Piece):
-    def __init__(self, coord, colour, board):
-        Piece.__init__(self, coord, colour, board)
-        # Graphics
-        self.displayImage = PhotoImage(file=board.UI.pathImages+colour+'Queen.png')
-        self.resize()
-        X, Y = board.UI.coordToPixel(self.coord[0], self.coord[1])
-        self.Image = board.UI.canvas.create_image((X, Y), image=self.displayImage)
-
     def baseMoves(self):
         moveRook = Rook(self.coord, self.colour, self.board).baseMoves()
         moveBishop = Bishop(self.coord, self.colour, self.board).baseMoves()

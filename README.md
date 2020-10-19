@@ -34,6 +34,9 @@ What is done:
 - [x] Black and white must play alternatively
 
 What must be done:
+- [ ] Stalemate
+- [ ] 3x repeated configuration = draw
+- [ ] 50 moves rule
 - [ ] Implement deep learning bot
 
 What could be done:

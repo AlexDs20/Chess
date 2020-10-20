@@ -6,11 +6,12 @@ def minimax(board, depth, maximizing):
     give the board and use minimax to return the best move for a given depth.
     If maximizing is True, we maximize the move, otherwise, we minimize
 
-    TODO:   pruning tree
+    TODO:   returning the move to be played
+            pruning tree
             multiprocessing -> split the branching between threads
     """
-
-    if depth == 0 or board.checkmate():
+    checkmate, stalemate = board.checkmate()
+    if depth == 0 or checkmate:
         return board.eval()
 
     if maximizing:

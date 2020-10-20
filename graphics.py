@@ -8,8 +8,9 @@ from pieces import Piece
 
 class GraphicsInterface():
     def __init__(self):
-        # -----------
-        # Variables
+        """
+        Variables
+        """
         self.padx = 50
         self.pady = 50
         self.height = 900
@@ -27,31 +28,36 @@ class GraphicsInterface():
 
         self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e3 0 1'
 
-        self.turn = 0
-
         self.click = np.empty(2, dtype=int)
         self.realeased = np.empty(2, dtype=int)
         self.selectedPiece = []
         self.possibleMovesWidget = []
         self.possibleMovesImg = []
-        # -----------
 
-        # Interface
+        """
+        Interface
+        """
         self.root = Tk()
         self.canvas = Canvas(self.root, width=self.width, height=self.height)
         self.canvas.pack(padx=self.padx, pady=self.pady)
 
-        # Setup board
-        self.createCheckerboard()
+        """
+        Setup board
+        """
         self.board = Board(self.boardSize, self.initFEN)
+        self.createCheckerboard()
         self.placePieces(self.initFEN)
 
-        # Click actions
+        """
+        Click actions
+        """
         self.canvas.bind("<Button-1>", self.clicked)
         self.canvas.bind("<B1-Motion>", self.drag)
         self.canvas.bind("<ButtonRelease-1>", self.released)
 
-        # Main loop
+        """
+        Main loop
+        """
         self.root.mainloop()
 
     def createCheckerboard(self):
@@ -140,12 +146,16 @@ class GraphicsInterface():
             self.possibleMovesImg.append(img)
 
     def movePiecesGraphics(self, shift):
-        # Snap the piece to the right square and set the graphical board in the right config
+        """
+        Snap the piece to the right square and set the graphical board in the right config
+        """
         self.canvas.coords(self.Pieces[self.click[0], self.click[1]], shift)
         self.placePieces(self.board.getFEN())
 
     def coordToPixel(self, x, y):
-        # Returns center of square at coord [x, y] in Pixels
+        """
+        Returns center of square at coord [x, y] in Pixels
+        """
         xPix = self.padx + (x + 0.5) * self.squareSize
         yPix = self.pady + (self.boardSize - 1 - y + 0.5) * self.squareSize
         return xPix, yPix
@@ -159,13 +169,10 @@ class GraphicsInterface():
         return x, y
 
     def clicked(self, event):
-        print(self.board.getFEN())
         self.click = self.pixelToCoord(event.x, event.y)
         if self.click:
             self.selectedPiece = self.board.array[self.click[0], self.click[1]]
-            if (isinstance(self.selectedPiece, Piece) and
-                ((self.turn % 2 == 0 and self.selectedPiece.colour == 'black') or
-                 (self.turn % 2 == 1 and self.selectedPiece.colour == 'white'))):
+            if (isinstance(self.selectedPiece, Piece)) and self.selectedPiece.colour != self.board.player:
                 self.selectedPiece = []
             if isinstance(self.selectedPiece, Piece):
                 self.showPossibleMoves()
@@ -183,14 +190,14 @@ class GraphicsInterface():
                     self.board.move([self.click[0], self.click[1]], [
                                     self.released[0], self.released[1]])
                     xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
-                    if self.released != self.click:
-                        # To alternate who plays
-                        self.turn += 1
-                    if self.board.checkmate(self.selectedPiece.otherColour):
-                        self.showCheckmate()
                 else:
                     xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
                 self.movePiecesGraphics([xBoard, yBoard])
+                checkmate, stalemate = self.board.checkmate(self.selectedPiece.otherColour)
+                if checkmate:
+                    self.showCheckmate()
+                elif stalemate:
+                    pass
             self.possibleMovesWidget = []
             self.possibleMovesImg = []
         self.selectedPiece = []

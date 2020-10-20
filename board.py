@@ -1,5 +1,6 @@
 import numpy as np
 from pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
+import copy
 
 
 class Board:
@@ -7,9 +8,9 @@ class Board:
     Board class
 
     TODO: function to return a list of boards where the next possible move has been done
+          implement castling rules to work with FEN notations
           number of half moves since capture (to implement 50 moves rule)
           Fullmove number: start at 1 and increase after each black move
-          Alternate move between white and black
     """
 
     def __init__(self, boardSize, fen):
@@ -30,7 +31,11 @@ class Board:
         self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
         i = 0
         j = self.boardSize-1
-        config, self.player, self.castling, enPassant, self.halfMoves, self.fullMoves = fen.split(' ')
+        config, play, self.castling, enPassant, self.halfMoves, self.fullMoves = fen.split(' ')
+        if play == 'w':
+            self.player = 'white'
+        else:
+            self.player = 'black'
         if len(enPassant) == 2:
             self.enPassant = [ord(enPassant[0])-97, int(enPassant[1])]
         else:
@@ -68,7 +73,11 @@ class Board:
         + Pawn promotion
         and remember if either the king or the rook moved as it forbids castling
         """
-        if moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves():
+        if (moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves() and
+           self.player == self.array[moveFrom[0], moveFrom[1]].colour):
+            # Change who will play next turn
+            self.player = self.array[moveFrom[0], moveFrom[1]].otherColour
+
             # Append the piece at start and end of the move to move back if needed
             self.lastPiecesMoved = []
             self.lastPiecesMoved.append(self.array[moveTo[0], moveTo[1]])
@@ -116,6 +125,22 @@ class Board:
                 self.array[rookTo[0], rookTo[1]] = self.array[rookFrom[0], rookFrom[1]]
                 self.array[rookFrom[0], rookFrom[1]] = None
                 self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
+
+    def nextConfigs(self):
+        """
+        returns a list of boards with the next move already played
+        """
+        configs = []
+        moves = []
+        for i, col in enumerate(self.array):
+            for j, square in enumerate(col):
+                if isinstance(square, Piece):
+                    for m in square.possibleMoves():
+                        b = copy.deepcopy(self)
+                        b.move([i, j], m)
+                        configs.append(b)
+                        moves.append(m)
+        return configs
 
     def undoMove(self):
         """
@@ -180,13 +205,20 @@ class Board:
         return check
 
     def checkmate(self, colour):
-        checkmate = True
+        noMoves = True
+        king = self.findKing(colour)
+        check = self.isCheck(king, colour)
         for column in self.array:
             for square in column:
                 if isinstance(square, Piece) and square.colour == colour and square.possibleMoves():
-                    checkmate = False
+                    noMoves = False
                     break
-        return checkmate
+        checkmate, stalemate = False, False
+        if noMoves and check:
+            checkmate = True
+        elif noMoves and not check:
+            stalemate = True
+        return checkmate, stalemate
 
     def eval(self):
         """
@@ -201,23 +233,6 @@ class Board:
                     else:
                         evaluation -= square.value
         return evaluation
-
-    def nextConfigs(self):
-        """
-        Return a list of boards where the next possible move is already played
-        Each returned board are obtained from a different move
-        """
-        Configs = []
-        for i, col in enumerate(self.array):
-            for j, square in enumerate(col):
-                if isinstance(square, Piece):
-                    moves = square.possibleMoves()
-                    for m in moves:
-                        # b = copy.deepcopy(self)
-                        # b.move([i, j], m)
-                        # b.undoMove()
-                        pass
-        return Configs
 
     def getFEN(self):
         """

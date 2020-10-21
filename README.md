@@ -37,6 +37,7 @@ What must be done:
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule
+- [ ] minimax bot
 - [ ] Implement deep learning bot
 
 What could be done:

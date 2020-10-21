@@ -131,15 +131,13 @@ class Board:
         returns a list of boards with the next move already played
         """
         configs = []
-        moves = []
         for i, col in enumerate(self.array):
             for j, square in enumerate(col):
-                if isinstance(square, Piece):
+                if isinstance(square, Piece) and square.colour == self.player:
                     for m in square.possibleMoves():
                         b = copy.deepcopy(self)
                         b.move([i, j], m)
-                        configs.append(b)
-                        moves.append(m)
+                        configs.append([b, [[i, j], m]])
         return configs
 
     def undoMove(self):
@@ -227,7 +225,7 @@ class Board:
         evaluation = 0
         for col in self.array:
             for square in col:
-                if isinstance(square, Piece):
+                if isinstance(square, Piece) and not isinstance(square, King):
                     if square.colour == 'white':
                         evaluation += square.value
                     else:
@@ -296,3 +294,6 @@ class Board:
                    self.array[i, j].colour == 'white'):
                     checkerBoard[i, j] = checkerBoard[i, j].upper()
         return np.array_str(checkerBoard)
+
+    def __repr__(self):
+        return "Board"

@@ -63,6 +63,8 @@ class Piece:
 
 
 class Pawn(Piece):
+    value = 1
+
     def baseMoves(self):
         """
         TODO: Need to include en passant moves but for that need to save previous moves
@@ -109,6 +111,8 @@ class Pawn(Piece):
 
 
 class Rook(Piece):
+    value = 5
+
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -153,6 +157,8 @@ class Rook(Piece):
 
 
 class Knight(Piece):
+    value = 3
+
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -187,6 +193,8 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
+    value = 3.5
+
     def baseMoves(self):
         allMoves = []
         array = self.board.array
@@ -233,6 +241,8 @@ class Bishop(Piece):
 
 
 class King(Piece):
+    value = float('inf')
+
     def baseMoves(self):
         # TODO: Castling
         allMoves = []
@@ -298,6 +308,8 @@ class King(Piece):
 
 
 class Queen(Piece):
+    value = 9
+
     def baseMoves(self):
         moveRook = Rook(self.coord, self.colour, self.board).baseMoves()
         moveBishop = Bishop(self.coord, self.colour, self.board).baseMoves()

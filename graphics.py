@@ -2,8 +2,11 @@
 import numpy as np
 from tkinter import Tk, Canvas, PhotoImage
 
+from time import time
+
 from board import Board
 from pieces import Piece
+from bots.minmax import minimax
 
 
 class GraphicsInterface():
@@ -169,13 +172,29 @@ class GraphicsInterface():
         return x, y
 
     def clicked(self, event):
-        self.click = self.pixelToCoord(event.x, event.y)
-        if self.click:
-            self.selectedPiece = self.board.array[self.click[0], self.click[1]]
-            if (isinstance(self.selectedPiece, Piece)) and self.selectedPiece.colour != self.board.player:
-                self.selectedPiece = []
-            if isinstance(self.selectedPiece, Piece):
-                self.showPossibleMoves()
+        if True:
+            start = time()
+            if self.board.player == 'white':
+                evaluation, move = minimax(self.board, 2, True)
+            else:
+                evaluation, move = minimax(self.board, 2, False)
+            end = time()
+            print(end-start, evaluation, move)
+            # Move on the board
+            self.board.move(move[0], move[1])
+            # Graphical moves
+            x, y = self.coordToPixel(move[1][0], move[1][1])
+            self.canvas.coords(self.Pieces[move[0][0], move[0][1]], [x, y])
+            self.placePieces(self.board.getFEN())
+
+        if False:
+            self.click = self.pixelToCoord(event.x, event.y)
+            if self.click:
+                self.selectedPiece = self.board.array[self.click[0], self.click[1]]
+                if (isinstance(self.selectedPiece, Piece)) and self.selectedPiece.colour != self.board.player:
+                    self.selectedPiece = []
+                if isinstance(self.selectedPiece, Piece):
+                    self.showPossibleMoves()
 
     def drag(self, event):
         if isinstance(self.selectedPiece, Piece):

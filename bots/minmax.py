@@ -3,22 +3,28 @@ def minimax(board, depth, maximizing):
     give the board and use minimax to return the best move for a given depth.
     If maximizing is True, we maximize the move, otherwise, we minimize
 
-    TODO:   alpha-beta pruning tree
+    TODO:   alpha-beta pruning
             multiprocessing -> split the root branching between threads
     """
 
-    checkmate, stalemate = board.checkmate(board.player)
-    if depth == 0 or checkmate:
-        return board.eval(), []
+    getCheckmate, getStalemate = board.checkmate(board.player)
+    setCheckmate, setStalemate = board.checkmate(board.otherPlayer)
+
+    if depth == 0 or setCheckmate or getCheckmate:
+        value = board.eval()
+        if setCheckmate and board.player == 'white':
+            value = float('inf')
+        elif setCheckmate and board.player == 'black':
+            value = float('-inf')
+        if getCheckmate and board.player == 'white':
+            value = float('-inf')
+        elif getCheckmate and board.player == 'black':
+            value = float('inf')
+        return value, []
 
     if maximizing:
         maxEval = float('-inf')
         moveMax = []
-        """
-        for nextConfig in board.nextConfigs():
-            evaluation, _ = minimax(nextConfig[0], depth-1, False)
-                moveMax = nextConfig[1]
-        """
         for m in board.getAllMoves():
             board.move(m[0], m[1])
             evaluation, _ = minimax(board, depth-1, False)
@@ -30,11 +36,6 @@ def minimax(board, depth, maximizing):
     else:
         minEval = float('inf')
         moveMin = []
-        """
-        for nextConfig in board.nextConfigs():
-            evaluation, _ = minimax(nextConfig[0], depth-1, True)
-                moveMin = nextConfig[1]
-        """
         for m in board.getAllMoves():
             board.move(m[0], m[1])
             evaluation, _ = minimax(board, depth-1, True)

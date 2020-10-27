@@ -21,6 +21,7 @@ class Board:
     def __init__(self, boardSize, fen):
         self.enPassant = []
         self.player = 'white'
+        self.otherPlayer = 'black' if self.player == 'white' else 'white'
         self.castling = 'KQkq'
         self.halfMoves = 0
         self.fullMoves = 0
@@ -159,6 +160,7 @@ class Board:
 
             # Change who will play next turn
             self.player = self.array[moveFrom[0], moveFrom[1]].otherColour
+            self.otherPlayer = self.array[moveFrom[0], moveFrom[1]].colour
 
             # Make move
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
@@ -168,6 +170,8 @@ class Board:
             # Pawn moves
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
                 self.pawnMove(moveFrom, moveTo)
+            else:
+                self.enPassant = '-'
 
             # Castling
             if isinstance(self.array[moveTo[0], moveTo[1]], King) and abs(moveTo[0] - moveFrom[0]) == 2:
@@ -285,9 +289,9 @@ class Board:
             for square in col:
                 if isinstance(square, Piece):
                     if square.colour == 'white':
-                        evaluation += square.value
+                        evaluation += square.positionValue()
                     else:
-                        evaluation -= square.value
+                        evaluation -= square.positionValue()
         return evaluation
 
     def getAllMoves(self):

@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 
 
 class Piece:
@@ -13,6 +14,26 @@ class Piece:
 
         self.coord = coord
         self.board = board
+
+    def positionValue(self):
+        if self.colour == 'white':
+            map = self.valueMap
+        else:
+            # Flip the values on the board if black
+            map = [file[::-1] for file in self.valueMap]
+        squareValue = map[self.coord[0]][self.coord[1]]
+        return self.value + squareValue
+
+    def printMap(self):
+        if self.colour == 'white':
+            map = self.valueMap
+        else:
+            map = [file[::-1] for file in self.valueMap]
+        b = np.zeros([self.board.boardSize, self.board.boardSize], dtype=float)
+        for i in range(self.board.boardSize):
+            for j in range(self.board.boardSize):
+                b[i, j] = map[i][j]
+        print(b)
 
     def updateMove(self, moveTo):
         self.coord = moveTo
@@ -63,7 +84,15 @@ class Piece:
 
 
 class Pawn(Piece):
-    value = 1
+    valueMap = [[0.0, 0.5, 0.5, 0.0, 0.5, 1.0, 5.0, 0.0],
+                [0.0, 1.0, -0.5, 0.0, 0.5, 1.0, 5.0, 0.0],
+                [0.0, 1.0, -1.0, 0.0, 1.0, 2.0, 5.0, 0.0],
+                [0.0, -2.0, 0.0, 2.0, 2.5, 3.0, 5.0, 0.0],
+                [0.0, -2.0, 0.0, 2.0, 2.5, 3.0, 5.0, 0.0],
+                [0.0, 1.0, -1.0, 0.0, 1.0, 2.0, 5.0, 0.0],
+                [0.0, 1.0, -0.5, 0.0, 0.5, 1.0, 5.0, 0.0],
+                [0.0, 0.5, 0.5, 0.0, 0.5, 1.0, 5.0, 0.0]]
+    value = 10
 
     def baseMoves(self):
         """
@@ -111,7 +140,15 @@ class Pawn(Piece):
 
 
 class Rook(Piece):
-    value = 5
+    valueMap = [[0.0, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+                [0.0, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.0]]
+    value = 50
 
     def baseMoves(self):
         allMoves = []
@@ -157,7 +194,16 @@ class Rook(Piece):
 
 
 class Knight(Piece):
-    value = 3
+    valueMap = [[-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
+                [-4.0, -2.0, 0.5, 0.0, 0.5, 0.0, -2.0, -4.0],
+                [-3.0, 0.0, 1.0, 1.5, 1.5, 1.0, 0.0, -3.0],
+                [-3.0, 0.5, 1.5, 2.0, 2.0, 1.5, 0.0, -3.0],
+                [-3.0, 0.5, 1.5, 2.0, 2.0, 1.5, 0.0, -3.0],
+                [-3.0, 0.0, 1.0, 1.5, 1.5, 1.0, 0.0, -3.0],
+                [-4.0, -2.0, 0.5, 0.0, 0.5, 0.0, -2.0, -4.0],
+                [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]]
+
+    value = 30
 
     def baseMoves(self):
         allMoves = []
@@ -193,7 +239,15 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    value = 3.5
+    valueMap = [[-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0],
+                [-1.0, 0.5, 1.0, 0.0, 0.5, 0.0, 0.0, -1.0],
+                [-1.0, 0.0, 1.0, 1.0, 0.5, 0.5, 0.0, -1.0],
+                [-1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0],
+                [-1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0],
+                [-1.0, 0.0, 1.0, 1.0, 0.5, 0.5, 0.0, -1.0],
+                [-1.0, 0.5, 1.0, 0.0, 0.5, 0.0, 0.0, -1.0],
+                [-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]]
+    value = 35
 
     def baseMoves(self):
         allMoves = []
@@ -245,7 +299,16 @@ class King(Piece):
     King class
     It is given a value superior to all other pieces combined of the same colour
     """
-    value = 50
+    valueMap = [[2.0, 2.0, -1.0, -2.0, -3.0, -3.0, -3.0, -3.0],
+                [3.0, 2.0, -2.0, -3.0, -4.0, -4.0, -4.0, -4.0],
+                [1.0, 0.0, -2.0, -3.0, -4.0, -4.0, -4.0, -4.0],
+                [0.0, 0.0, -2.0, -4.0, -5.0, -5.0, -5.0, -5.0],
+                [0.0, 0.0, -2.0, -4.0, -5.0, -5.0, -5.0, -5.0],
+                [1.0, 0.0, -2.0, -3.0, -4.0, -4.0, -4.0, -4.0],
+                [3.0, 2.0, -2.0, -3.0, -4.0, -4.0, -4.0, -4.0],
+                [2.0, 2.0, -1.0, -2.0, -3.0, -3.0, -3.0, -3.0]]
+
+    value = 900
 
     def baseMoves(self):
         # TODO: Castling
@@ -312,7 +375,16 @@ class King(Piece):
 
 
 class Queen(Piece):
-    value = 9
+    valueMap = [[-2.0, -1.0, -1.0, 0.0, -0.5, -1.0, -1.0, -2.0],
+                [-1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, -1.0],
+                [-1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0],
+                [-0.5, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5],
+                [-0.5, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5],
+                [-1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0],
+                [-1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, -1.0],
+                [-2.0, -1.0, -1.0, 0.0, -0.5, -1.0, -1.0, -2.0]]
+
+    value = 90
 
     def baseMoves(self):
         moveRook = Rook(self.coord, self.colour, self.board).baseMoves()

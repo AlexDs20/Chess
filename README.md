@@ -32,10 +32,10 @@ What is done:
 - [x] En passant
 - [x] Castle
 - [x] Black and white must play alternatively
-- [x] minimax bot
+- [x] minimax bot with alpha-beta pruning
 
 What must be done:
-- [ ] minimax bot: alpha-beta pruning, multiprocessing at the root
+- [ ] minimax bot: multiprocessing
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule

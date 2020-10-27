@@ -185,7 +185,7 @@ class GraphicsInterface():
     def clicked(self, event):
         if self.board.player == 'black':
             start = time()
-            evaluation, move = minimax(self.board, 3, False)
+            evaluation, move = minimax(self.board, 3, float('-inf'), float('inf'), False)
             end = time()
             print(end-start, evaluation, move)
             # Move on the board

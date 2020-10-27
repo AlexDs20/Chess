@@ -292,7 +292,7 @@ class Board:
                         evaluation += square.positionValue()
                     else:
                         evaluation -= square.positionValue()
-        return evaluation
+        return evaluation/10.0
 
     def getAllMoves(self):
         """

@@ -29,7 +29,8 @@ class GraphicsInterface():
         self.Images = np.empty([self.boardSize, self.boardSize], dtype=object)
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
-        self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e3 0 1'
+        self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        # self.initFEN = 'rnbqkbnr/1ppppppp/8/p7/2B1P3/5Q2/PPPP1PPP/RNB1K1NR black KQkq - 0 1'
 
         self.click = np.empty(2, dtype=int)
         self.realeased = np.empty(2, dtype=int)
@@ -151,6 +152,7 @@ class GraphicsInterface():
     def movePiecesGraphics(self, shift):
         """
         Snap the piece to the right square and set the graphical board in the right config
+        In practice the first call is not needed but it makes the move smoother
         """
         self.canvas.coords(self.Pieces[self.click[0], self.click[1]], shift)
         self.placePieces(self.board.getFEN())
@@ -171,13 +173,19 @@ class GraphicsInterface():
             y = []
         return x, y
 
+    def makeMove(self):
+        if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
+            self.board.move([self.click[0], self.click[1]], [
+                            self.released[0], self.released[1]])
+            xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+        else:
+            xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
+        self.movePiecesGraphics([xBoard, yBoard])
+
     def clicked(self, event):
-        if True:
+        if self.board.player == 'black':
             start = time()
-            if self.board.player == 'white':
-                evaluation, move = minimax(self.board, 2, True)
-            else:
-                evaluation, move = minimax(self.board, 2, False)
+            evaluation, move = minimax(self.board, 2, False)
             end = time()
             print(end-start, evaluation, move)
             # Move on the board
@@ -186,8 +194,7 @@ class GraphicsInterface():
             x, y = self.coordToPixel(move[1][0], move[1][1])
             self.canvas.coords(self.Pieces[move[0][0], move[0][1]], [x, y])
             self.placePieces(self.board.getFEN())
-
-        if False:
+        else:
             self.click = self.pixelToCoord(event.x, event.y)
             if self.click:
                 self.selectedPiece = self.board.array[self.click[0], self.click[1]]
@@ -205,13 +212,8 @@ class GraphicsInterface():
         if isinstance(self.selectedPiece, Piece):
             self.released = self.pixelToCoord(event.x, event.y)
             if self.released:
-                if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
-                    self.board.move([self.click[0], self.click[1]], [
-                                    self.released[0], self.released[1]])
-                    xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
-                else:
-                    xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
-                self.movePiecesGraphics([xBoard, yBoard])
+                # makeMove on the board and graphically!
+                self.makeMove()
                 checkmate, stalemate = self.board.checkmate(self.selectedPiece.otherColour)
                 if checkmate:
                     self.showCheckmate()

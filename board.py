@@ -11,27 +11,32 @@ class Board:
           implement castling rules to work with FEN notations
           number of half moves since capture (to implement 50 moves rule)
           Fullmove number: start at 1 and increase after each black move
+          Good way to move save states of board
+          undoMove()
+          redoMove()
+          previousMove()
+          followingMove()
     """
 
     def __init__(self, boardSize, fen):
         self.enPassant = []
-        self.lastPiecesMoved = []
-        self.player = []
-        self.castling = []
-        self.halfMoves = []
-        self.fullMoves = []
+        self.player = 'white'
+        self.castling = 'KQkq'
+        self.halfMoves = 0
+        self.fullMoves = 0
+        self.totalMoves = 0
         self.boardSize = boardSize
-        self.initBoard(fen)
+        self.array = np.empty([boardSize, boardSize], dtype=object)
+        self.Configs = [fen]
+        self.updateFENvariables()
+        self.updateBoard()
 
-    def initBoard(self, fen):
+    def updateFENvariables(self):
         """
-        Initiate the board for the given configuration
-        TODO: implement the additional properties in the FEN format, not just the pieces posiitons
+        Init the variables with the input FEN
         """
-        self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
-        i = 0
-        j = self.boardSize-1
-        config, play, self.castling, enPassant, self.halfMoves, self.fullMoves = fen.split(' ')
+        fen = self.Configs[-1]
+        _, play, self.castling, enPassant, hM, fM = fen.split(' ')
         if play == 'w':
             self.player = 'white'
         else:
@@ -40,16 +45,33 @@ class Board:
             self.enPassant = [ord(enPassant[0])-97, int(enPassant[1])]
         else:
             self.enPassant = enPassant
+        self.halfMoves = int(hM)
+        self.fullMoves = int(fM)
 
+    def updateBoard(self):
+        """
+        Update the board for the given configuration
+        """
+        config = self.Configs[-1]
+        self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
+
+        # Put the piece on the board
+        i = 0
+        j = self.boardSize-1
         for s in config:
+            if s == ' ':
+                break
+            # skip empty squares
             if s.isnumeric():
                 i += int(s)
                 continue
+            # Colour of piece
             if s.isupper():
                 colour = 'white'
             else:
                 colour = 'black'
 
+            # Puts piece
             if s.lower() == 'p':
                 self.array[i, j] = Pawn([i, j], colour, self)
             elif s.lower() == 'r':
@@ -63,9 +85,65 @@ class Board:
             elif s.lower() == 'k':
                 self.array[i, j] = King([i, j], colour, self)
             i += 1
+            # New rank
             if s == '/':
                 j -= 1
                 i = 0
+
+    def updateMoveCount(self, moveFrom, moveTo):
+        """
+        50 moves rule:
+            If no capture or pawn moves, update half moves by 1
+        """
+        if ((isinstance(self.array[moveTo[0], moveTo[1]], Piece) and
+            self.array[moveTo[0], moveTo[1]].colour != self.player) or
+                isinstance(self.array[moveFrom[0], moveFrom[1]], Pawn)):
+            self.halfMoves = 0
+        else:
+            self.halfMoves += 1
+
+        if self.player == 'black':
+            self.fullMoves += 1
+
+        self.totalMoves += 1
+
+    def pawnMove(self, moveFrom, moveTo):
+        """
+        Special pawn moves: Promote, en passant
+        """
+        # Promote
+        if moveTo[1] == 0 or moveTo[1] == self.boardSize-1:
+            # promoteTo = input('Promote into a:')
+            # self.promotePawn(moveTo, promoteTo)
+            self.promotePawn(moveTo, 'Queen')
+        # If en passant: capture pawn
+        if moveTo in [self.enPassant]:
+            if self.array[moveTo[0], moveTo[1]].colour == 'white':
+                self.array[moveTo[0], moveTo[1]-1] = None
+            else:
+                self.array[moveTo[0], moveTo[1]+1] = None
+        # If moves 2 squares: save where the next pawn can go
+        self.enPassant = '-'
+        if abs(moveTo[1]-moveFrom[1]) == 2:
+            if self.array[moveTo[0], moveTo[1]].colour == 'white':
+                self.enPassant = [moveTo[0], moveTo[1]-1]
+            else:
+                self.enPassant = [moveTo[0], moveTo[1]+1]
+
+    def kingMove(self, moveFrom, moveTo):
+        if moveTo[0] - moveFrom[0] == -2:
+            # Castle Queen side
+            rookFrom = [0, moveTo[1]]
+            rookTo = [moveTo[0]+1, moveTo[1]]
+        elif moveTo[0] - moveFrom[0] == 2:
+            # Castle King side
+            rookFrom = [self.boardSize-1, moveTo[1]]
+            rookTo = [moveTo[0]-1, moveTo[1]]
+
+        # Move Rook
+        self.array[rookTo[0], rookTo[1]] = self.array[rookFrom[0], rookFrom[1]]
+        self.array[rookFrom[0], rookFrom[1]] = None
+        self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
 
     def move(self, moveFrom, moveTo):
         """
@@ -75,56 +153,31 @@ class Board:
         """
         if (moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves() and
            self.player == self.array[moveFrom[0], moveFrom[1]].colour):
+
+            # 50 move rules and Full moves count
+            self.updateMoveCount(moveFrom, moveTo)
+
             # Change who will play next turn
             self.player = self.array[moveFrom[0], moveFrom[1]].otherColour
 
-            # Append the piece at start and end of the move to move back if needed
-            self.lastPiecesMoved = []
-            self.lastPiecesMoved.append(self.array[moveTo[0], moveTo[1]])
-            self.lastPiecesMoved.append(self.array[moveFrom[0], moveFrom[1]])
-
+            # Make move
             self.array[moveTo[0], moveTo[1]] = self.array[moveFrom[0], moveFrom[1]]
             self.array[moveFrom[0], moveFrom[1]] = None
 
+            # Special moves:
+            # Pawn moves
             if isinstance(self.array[moveTo[0], moveTo[1]], Pawn):
-                # If Pawn on first/last rank: Promote
-                if ((self.array[moveTo[0], moveTo[1]].colour == 'black' and moveTo[1] == 0) or
-                        (self.array[moveTo[0], moveTo[1]].colour == 'white' and moveTo[1] == self.boardSize-1)):
-                    promoteTo = input('Promote into a:')
-                    self.promotePawn(moveTo, promoteTo)
-                # If pawn moves en passant: remove pawn
-                if moveTo in [self.enPassant]:
-                    if self.array[moveTo[0], moveTo[1]].colour == 'white':
-                        self.array[moveTo[0], moveTo[1]-1] = None
-                    else:
-                        self.array[moveTo[0], moveTo[1]+1] = None
-                # If enPassant possible: save where the next pawn can go
-                self.enPassant = '-'
-                if abs(moveTo[1]-moveFrom[1]) == 2:
-                    if self.array[moveTo[0], moveTo[1]].colour == 'white':
-                        self.enPassant = [moveTo[0], moveTo[1]-1]
-                    else:
-                        self.enPassant = [moveTo[0], moveTo[1]+1]
+                self.pawnMove(moveFrom, moveTo)
+
+            # Castling
+            if isinstance(self.array[moveTo[0], moveTo[1]], King) and abs(moveTo[0] - moveFrom[0]) == 2:
+                self.kingMove(moveFrom, moveTo)
+
+            # update coordinates of moved piece
             self.array[moveTo[0], moveTo[1]].updateMove(moveTo)
 
-            if isinstance(self.array[moveTo[0], moveTo[1]], King) and abs(moveTo[0] - moveFrom[0]) == 2:
-                if moveTo[0] - moveFrom[0] == -2:
-                    # Castle Queen side
-                    rookFrom = [0, moveTo[1]]
-                    rookTo = [moveTo[0]+1, moveTo[1]]
-                elif moveTo[0] - moveFrom[0] == 2:
-                    # Castle King side
-                    rookFrom = [self.boardSize-1, moveTo[1]]
-                    rookTo = [moveTo[0]-1, moveTo[1]]
-
-                # Save the move
-                self.lastPiecesMoved.append(self.array[rookTo[0], rookTo[1]])
-                self.lastPiecesMoved.append(self.array[rookFrom[0], rookFrom[1]])
-
-                # Make move
-                self.array[rookTo[0], rookTo[1]] = self.array[rookFrom[0], rookFrom[1]]
-                self.array[rookFrom[0], rookFrom[1]] = None
-                self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
+            # Save the new configuration
+            self.Configs.append(self.getFEN())
 
     def nextConfigs(self):
         """
@@ -144,15 +197,17 @@ class Board:
         """
         Undo the last move
         """
-        for piece in self.lastPiecesMoved:
-            if isinstance(piece, Piece):
-                self.array[piece.coord[0], piece.coord[1]] = piece
+        self.Configs.pop()
+        self.updateFENvariables()
+        self.updateBoard()
 
     def promotePawn(self, coord, promoteTo):
         """
         Promote pawn to desired piece.
         TODO: GUI for suggesting which piece
         """
+        self.array[coord[0], coord[1]] = Queen(
+            [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
         if promoteTo.lower() == "queen":
             self.array[coord[0], coord[1]] = Queen(
                 [coord[0], coord[1]], self.array[coord[0], coord[1]].colour, self)
@@ -203,6 +258,9 @@ class Board:
         return check
 
     def checkmate(self, colour):
+        """
+        Checks if colour is in checkmate or stalemate
+        """
         noMoves = True
         king = self.findKing(colour)
         check = self.isCheck(king, colour)
@@ -225,12 +283,28 @@ class Board:
         evaluation = 0
         for col in self.array:
             for square in col:
-                if isinstance(square, Piece) and not isinstance(square, King):
+                if isinstance(square, Piece):
                     if square.colour == 'white':
                         evaluation += square.value
                     else:
                         evaluation -= square.value
         return evaluation
+
+    def getAllMoves(self):
+        """
+        Get all the possible moves for the current player
+        the format is:
+            moves[i, 0] = starting position
+            moves[i, 1] = end position
+        """
+        moves = []
+        for i, col in enumerate(self.array):
+            for j, square in enumerate(col):
+                if isinstance(square, Piece) and square.colour == self.player:
+                    pieceMoves = square.possibleMoves()
+                    for m in pieceMoves:
+                        moves.append([[i, j], m])
+        return moves
 
     def getFEN(self):
         """
@@ -269,7 +343,8 @@ class Board:
                 enPassant = chr(self.enPassant[0]+97) + str(self.enPassant[1])
             else:
                 enPassant = self.enPassant
-            fen = "%s %s %s %s %s %s" % (b[:-1], self.player, self.castling, enPassant, self.halfMoves, self.fullMoves)
+            fen = "%s %s %s %s %s %s" % (b[:-1], self.player[0], self.castling,
+                                         enPassant, self.halfMoves, self.fullMoves)
         return fen
 
     def __str__(self):

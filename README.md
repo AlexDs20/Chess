@@ -32,12 +32,13 @@ What is done:
 - [x] En passant
 - [x] Castle
 - [x] Black and white must play alternatively
+- [x] minimax bot
 
 What must be done:
+- [ ] minimax bot: alpha-beta pruning, multiprocessing at the root
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule
-- [ ] minimax bot
 - [ ] Implement deep learning bot
 
 What could be done:

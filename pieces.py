@@ -241,7 +241,11 @@ class Bishop(Piece):
 
 
 class King(Piece):
-    value = float('inf')
+    """
+    King class
+    It is given a value superior to all other pieces combined of the same colour
+    """
+    value = 50
 
     def baseMoves(self):
         # TODO: Castling

@@ -33,12 +33,14 @@ What is done:
 - [x] Castle
 - [x] Black and white must play alternatively
 - [x] minimax bot with alpha-beta pruning
+- [x] Randomize the order of the moves that are passed to minimax bot
+- [x] Better implement the playing interface (graphics.py)! Some things
+  can/should still be improved but that can wait
+- [x] Implement castling using the FEN notations instead, now I get a bug when
+  undoing a move as the king and rooks are considered to note have moved yet
 
 What must be done:
-- [ ] Better implement the playing interface (graphics.py)!
-- [ ] Implement castling using the FEN notations instead, now I get a bug when
-  undoing a move as the king and rooks are considered to note have moved yet
-- [ ] Randomize the order of the moves that are used for minimax bot
+- [ ] minimax does not return the good moves... (for black at least)
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule

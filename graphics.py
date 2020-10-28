@@ -12,6 +12,13 @@ from bots.minimax import minimax
 class GraphicsInterface():
     def __init__(self):
         """
+        Players: either: 'human', 'minimax'
+        """
+        self.playerWhite = 'human'
+        self.playerBlack = 'minimax'
+        self.minimaxDepth = 2
+
+        """
         Window
         """
         self.padx = 50
@@ -39,7 +46,7 @@ class GraphicsInterface():
         Action
         """
         self.click = np.empty(2, dtype=int)
-        self.realeased = np.empty(2, dtype=int)
+        self.release = np.empty(2, dtype=int)
         self.selectedPiece = []
         self.possibleMovesWidget = []
         self.possibleMovesImg = []
@@ -60,16 +67,37 @@ class GraphicsInterface():
         self.placePieces(self.initFEN)
 
         """
-        Click actions
+        PLAY
         """
+        self.play()
+
+    def play(self):
+        checkmate = False
+        while not checkmate:
+            if ((self.board.player == 'white' and self.playerWhite == 'human') or
+               (self.board.player == 'black' and self.playerBlack == 'human')):
+                self.humanMove()
+
+            if ((self.board.player == 'white' and self.playerWhite == 'minimax') or
+               (self.board.player == 'black' and self.playerBlack == 'minimax')):
+                self.minimaxMove()
+
+            self.root.update_idletasks()
+            self.root.update()
+
+    def humanMove(self):
         self.canvas.bind("<Button-1>", self.clicked)
         self.canvas.bind("<B1-Motion>", self.drag)
         self.canvas.bind("<ButtonRelease-1>", self.released)
 
-        """
-        Main loop
-        """
-        self.root.mainloop()
+    def minimaxMove(self):
+        maximize = {'black': 'False', 'white': 'True'}
+        start = time()
+        val, move = minimax(self.board, self.minimaxDepth, float('-inf'), float('inf'),
+                            maximize[self.board.player])
+        end = time()
+        print(end-start, val, move)
+        self.makeMove(move)
 
     def createCheckerboard(self):
         for i in range(0, self.boardSize):
@@ -140,12 +168,12 @@ class GraphicsInterface():
             img = self.canvas.create_image((X, Y), image=imgWidget)
             self.possibleMovesImg.append(img)
 
-    def movePiecesGraphics(self, shift):
+    def movePiecesGraphics(self, shift, m):
         """
         Snap the piece to the right square and set the graphical board in the right config
         In practice the first call is not needed but it makes the move smoother
         """
-        self.canvas.coords(self.Pieces[self.click[0], self.click[1]], shift)
+        self.canvas.coords(self.Pieces[m[0][0], m[0][1]], shift)
         self.placePieces(self.board.getFEN())
 
     def coordToPixel(self, x, y):
@@ -164,57 +192,58 @@ class GraphicsInterface():
             y = []
         return x, y
 
-    def makeMove(self):
+    def makeMove(self, m):
         """
         Make the move on the board and graphically
         """
-        if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
-            self.board.move([self.click[0], self.click[1]], [
-                            self.released[0], self.released[1]])
-            xBoard, yBoard = self.coordToPixel(self.released[0], self.released[1])
+        if list(m[1]) in self.board.array[m[0][0], m[0][1]].possibleMoves():
+            self.board.move(list(m[0]), list(m[1]))
+            xBoard, yBoard = self.coordToPixel(m[1][0], m[1][1])
         else:
-            xBoard, yBoard = self.coordToPixel(self.click[0], self.click[1])
-        self.movePiecesGraphics([xBoard, yBoard])
+            xBoard, yBoard = self.coordToPixel(m[0][0], m[0][1])
+        self.movePiecesGraphics([xBoard, yBoard], m)
+        checkmate, stalemate = self.board.checkmate(self.board.player)
+        if checkmate:
+            self.showCheckmate()
+        elif stalemate:
+            pass
+        self.resetVariables()
+        print(self.board.getFEN())
+
+    def resetVariables(self):
+        self.possibleMovesWidget = []
+        self.possibleMovesImg = []
+        self.selectedPiece = []
+        self.click = np.empty(2, dtype=int)
+        self.release = np.empty(2, dtype=int)
 
     def clicked(self, event):
-        if self.board.player == 'black':
-            start = time()
-            evaluation, move = minimax(self.board, 3, float('-inf'), float('inf'), False)
-            end = time()
-            print(end-start, evaluation, move)
-            # Move on the board
-            self.board.move(move[0], move[1])
-            # Graphical moves
-            x, y = self.coordToPixel(move[1][0], move[1][1])
-            self.canvas.coords(self.Pieces[move[0][0], move[0][1]], [x, y])
-            self.placePieces(self.board.getFEN())
-        else:
-            self.click = self.pixelToCoord(event.x, event.y)
-            if self.click:
-                self.selectedPiece = self.board.array[self.click[0], self.click[1]]
-                if (isinstance(self.selectedPiece, Piece)) and self.selectedPiece.colour != self.board.player:
-                    self.selectedPiece = []
-                if isinstance(self.selectedPiece, Piece):
-                    self.showPossibleMoves()
+        """
+        When click on piece of the color that should play, display the possible moves
+        """
+        self.click = self.pixelToCoord(event.x, event.y)
+        if self.click:
+            self.selectedPiece = self.board.array[self.click[0], self.click[1]]
+            if (isinstance(self.selectedPiece, Piece)) and self.selectedPiece.colour != self.board.player:
+                self.selectedPiece = []
+            if isinstance(self.selectedPiece, Piece):
+                self.showPossibleMoves()
 
     def drag(self, event):
+        """
+        Make the selected piece follow the mouse
+        """
         if isinstance(self.selectedPiece, Piece):
             xMid, yMid = self.canvas.coords(self.Pieces[self.click[0], self.click[1]])
             self.canvas.move(self.Pieces[self.click[0], self.click[1]], event.x - xMid, event.y - yMid)
 
     def released(self, event):
+        """
+        If allowed move, make move on the board and on the GUI
+        + reset the variables
+        """
         if isinstance(self.selectedPiece, Piece):
-            self.released = self.pixelToCoord(event.x, event.y)
-            if self.released:
-                # makeMove on the board and graphically!
-                self.makeMove()
-                checkmate, stalemate = self.board.checkmate(self.selectedPiece.otherColour)
-                if checkmate:
-                    self.showCheckmate()
-                elif stalemate:
-                    pass
-            self.possibleMovesWidget = []
-            self.possibleMovesImg = []
-        self.selectedPiece = []
-        self.click = np.empty(2, dtype=int)
-        self.released = np.empty(2, dtype=int)
+            self.release = self.pixelToCoord(event.x, event.y)
+            if self.release:
+                move = [self.click, self.release]
+                self.makeMove(move)

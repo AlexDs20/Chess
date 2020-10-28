@@ -1,21 +1,16 @@
 import numpy as np
+import random
 from pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
-import copy
 
 
 class Board:
     """
     Board class
 
-    TODO: function to return a list of boards where the next possible move has been done
-          implement castling rules to work with FEN notations
+    TODO: implement castling rules to work with FEN notations
           number of half moves since capture (to implement 50 moves rule)
           Fullmove number: start at 1 and increase after each black move
           Good way to move save states of board
-          undoMove()
-          redoMove()
-          previousMove()
-          followingMove()
     """
 
     def __init__(self, boardSize, fen):
@@ -26,6 +21,8 @@ class Board:
         self.halfMoves = 0
         self.fullMoves = 0
         self.totalMoves = 0
+        self.mate = False
+        self.stalemate = False
         self.boardSize = boardSize
         self.array = np.empty([boardSize, boardSize], dtype=object)
         self.Configs = [fen]
@@ -43,7 +40,7 @@ class Board:
         else:
             self.player = 'black'
         if len(enPassant) == 2:
-            self.enPassant = [ord(enPassant[0])-97, int(enPassant[1])]
+            self.enPassant = [ord(enPassant[0])-97, int(enPassant[1])-1]
         else:
             self.enPassant = enPassant
         self.halfMoves = int(hM)
@@ -146,6 +143,28 @@ class Board:
         self.array[rookFrom[0], rookFrom[1]] = None
         self.array[rookTo[0], rookTo[1]].updateMove([rookTo[0], rookTo[1]])
 
+    def updateCastlingVar(self, moveFrom, moveTo):
+        piece = self.array[moveTo[0], moveTo[1]]
+
+        if isinstance(piece, Rook):
+            if moveFrom[0] == 0:
+                side = 'q'
+            elif moveFrom[0] == self.boardSize-1:
+                side = 'k'
+            else:
+                side = ''
+            if piece.colour == 'white':
+                side = side.upper()
+            self.castling = self.castling.replace(side, '')
+
+        if isinstance(piece, King):
+            if piece.colour == 'white':
+                self.castling = self.castling.replace('K', '')
+                self.castling = self.castling.replace('Q', '')
+            else:
+                self.castling = self.castling.replace('k', '')
+                self.castling = self.castling.replace('q', '')
+
     def move(self, moveFrom, moveTo):
         """
         Make a move!
@@ -154,9 +173,6 @@ class Board:
         """
         if (moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves() and
            self.player == self.array[moveFrom[0], moveFrom[1]].colour):
-
-            # 50 move rules and Full moves count
-            self.updateMoveCount(moveFrom, moveTo)
 
             # Change who will play next turn
             self.player = self.array[moveFrom[0], moveFrom[1]].otherColour
@@ -180,22 +196,17 @@ class Board:
             # update coordinates of moved piece
             self.array[moveTo[0], moveTo[1]].updateMove(moveTo)
 
+            # update Castling rights
+            self.updateCastlingVar(moveFrom, moveTo)
+
+            # 50 move rules and Full moves count
+            self.updateMoveCount(moveFrom, moveTo)
+
             # Save the new configuration
             self.Configs.append(self.getFEN())
 
-    def nextConfigs(self):
-        """
-        returns a list of boards with the next move already played
-        """
-        configs = []
-        for i, col in enumerate(self.array):
-            for j, square in enumerate(col):
-                if isinstance(square, Piece) and square.colour == self.player:
-                    for m in square.possibleMoves():
-                        b = copy.deepcopy(self)
-                        b.move([i, j], m)
-                        configs.append([b, [[i, j], m]])
-        return configs
+            # Check if checkmate (use self.player as it is that one who will play next turn)
+            self.mate, self.stalemate = self.checkmate(self.player)
 
     def undoMove(self):
         """
@@ -296,7 +307,7 @@ class Board:
 
     def getAllMoves(self):
         """
-        Get all the possible moves for the current player
+        Get all the possible moves for the current player in a random order
         the format is:
             moves[i, 0] = starting position
             moves[i, 1] = end position
@@ -308,6 +319,7 @@ class Board:
                     pieceMoves = square.possibleMoves()
                     for m in pieceMoves:
                         moves.append([[i, j], m])
+        random.shuffle(moves)
         return moves
 
     def getFEN(self):
@@ -344,10 +356,11 @@ class Board:
             b += '/'
         if i == 0 and j == self.boardSize-1:
             if len(self.enPassant) == 2:
-                enPassant = chr(self.enPassant[0]+97) + str(self.enPassant[1])
+                enPassant = chr(self.enPassant[0]+97) + str(self.enPassant[1]+1)
             else:
                 enPassant = self.enPassant
-            fen = "%s %s %s %s %s %s" % (b[:-1], self.player[0], self.castling,
+            castling = '-' if self.castling == '' else self.castling
+            fen = "%s %s %s %s %s %s" % (b[:-1], self.player[0], castling,
                                          enPassant, self.halfMoves, self.fullMoves)
         return fen
 

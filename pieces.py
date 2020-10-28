@@ -311,7 +311,6 @@ class King(Piece):
     value = 900
 
     def baseMoves(self):
-        # TODO: Castling
         allMoves = []
         array = self.board.array
         boardSize = self.board.boardSize-1
@@ -344,31 +343,34 @@ class King(Piece):
     def castleMoves(self):
         """
             All moves are the base moves + castling.
+            For castling, check if it is allowed and if none of the squares are in check
         """
         moves = []
         array = self.board.array
-        boardSize = self.board.boardSize-1
         x = self.coord[0]
         y = self.coord[1]
-        if not self.hasMoved:
-            # King Side
+        if self.colour == 'white':
+            sides = [char.lower() for char in self.board.castling if char.isupper()]
+        else:
+            sides = [char for char in self.board.castling if char.islower()]
+
+        if 'k' in sides:
+            # Castle king side: check if squares empty and not in check!
             castle = True
-            if not isinstance(array[boardSize, y], Rook) or (isinstance(array[boardSize, y], Rook) and
-                                                             array[boardSize, y].hasMoved):
-                castle = False
             for i in range(x + 1, x + 3):
                 if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
                     castle = False
+                    break
             if castle:
                 moves.extend([x + 2, y])
-            # Queen Side
+
+        if 'q' in sides:
+            # Castle queen side
             castle = True
-            if not isinstance(array[0, y], Rook) or (isinstance(array[0, y], Rook) and
-                                                     array[0, y].hasMoved):
-                castle = False
             for i in range(x - 1, x - 4, -1):
                 if array[i, y] is not None or self.board.isCheck([i, y], self.colour):
                     castle = False
+                    break
             if castle:
                 moves.extend([x - 2, y])
         return moves

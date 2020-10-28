@@ -6,8 +6,8 @@ def minimax(board, depth, alpha, beta, maximizing):
     TODO:   multiprocessing -> split the root branching between threads
     """
 
-    getCheckmate, getStalemate = board.checkmate(board.player)
-    setCheckmate, setStalemate = board.checkmate(board.otherPlayer)
+    getCheckmate, _ = board.checkmate(board.player)
+    setCheckmate, _ = board.checkmate(board.otherPlayer)
 
     if depth == 0 or setCheckmate or getCheckmate:
         value = board.eval()

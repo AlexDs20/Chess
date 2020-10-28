@@ -6,19 +6,23 @@ from time import time
 
 from board import Board
 from pieces import Piece
-from bots.minmax import minimax
+from bots.minimax import minimax
 
 
 class GraphicsInterface():
     def __init__(self):
         """
-        Variables
+        Window
         """
         self.padx = 50
         self.pady = 50
         self.height = 900
         self.width = 900
         self.bgColor = '#F7F7F7'
+
+        """
+        Board
+        """
         self.boardSize = 8
         self.squareSize = np.min([(self.width - 2 * self.padx) // self.boardSize,
                                   (self.height - 2 * self.pady) // self.boardSize])
@@ -30,8 +34,10 @@ class GraphicsInterface():
         self.Pieces = np.empty([self.boardSize, self.boardSize], dtype=object)
 
         self.initFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-        # self.initFEN = 'rnbqkbnr/1ppppppp/8/p7/2B1P3/5Q2/PPPP1PPP/RNB1K1NR black KQkq - 0 1'
 
+        """
+        Action
+        """
         self.click = np.empty(2, dtype=int)
         self.realeased = np.empty(2, dtype=int)
         self.selectedPiece = []
@@ -42,6 +48,7 @@ class GraphicsInterface():
         Interface
         """
         self.root = Tk()
+        self.root.title('PyChess')
         self.canvas = Canvas(self.root, width=self.width, height=self.height)
         self.canvas.pack(padx=self.padx, pady=self.pady)
 
@@ -79,6 +86,7 @@ class GraphicsInterface():
         """
         Places graphical pieces according to fen configuration
         """
+        pieces = {'p': 'Pawn', 'r': 'Rook', 'n': 'Knight', 'b': 'Bishop', 'q': 'Queen', 'k': 'King'}
         i = 0
         j = self.boardSize-1
         for s in fen:
@@ -92,28 +100,8 @@ class GraphicsInterface():
                 colour = 'white'
             else:
                 colour = 'black'
-            if s.lower() == 'p':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Pawn.png')
-                self.Pieces[i, j] = self.canvas.create_image((x, y),
-                                                             image=self.Images[i, j])
-            elif s.lower() == 'r':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Rook.png')
-                self.Pieces[i, j] = self.canvas.create_image((x, y),
-                                                             image=self.Images[i, j])
-            elif s.lower() == 'n':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Knight.png')
-                self.Pieces[i, j] = self.canvas.create_image((x, y),
-                                                             image=self.Images[i, j])
-            elif s.lower() == 'b':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Bishop.png')
-                self.Pieces[i, j] = self.canvas.create_image((x, y),
-                                                             image=self.Images[i, j])
-            elif s.lower() == 'q':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'Queen.png')
-                self.Pieces[i, j] = self.canvas.create_image((x, y),
-                                                             image=self.Images[i, j])
-            elif s.lower() == 'k':
-                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+'King.png')
+            if s.isalpha():
+                self.Images[i, j] = PhotoImage(file=self.pathImages+colour+pieces[s.lower()]+'.png')
                 self.Pieces[i, j] = self.canvas.create_image((x, y),
                                                              image=self.Images[i, j])
             i += 1
@@ -124,6 +112,9 @@ class GraphicsInterface():
                 break
 
     def round_rectangle(self, x1, y1, x2, y2, r, **kwargs):
+        """
+        To display who wins
+        """
         points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2,
                   y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r,
                   x1, y1+r, x1, y1+r, x1, y1)
@@ -174,6 +165,9 @@ class GraphicsInterface():
         return x, y
 
     def makeMove(self):
+        """
+        Make the move on the board and graphically
+        """
         if [self.released[0], self.released[1]] in self.selectedPiece.possibleMoves():
             self.board.move([self.click[0], self.click[1]], [
                             self.released[0], self.released[1]])

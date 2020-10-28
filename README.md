@@ -35,11 +35,15 @@ What is done:
 - [x] minimax bot with alpha-beta pruning
 
 What must be done:
-- [ ] minimax bot: multiprocessing
+- [ ] Better implement the playing interface (graphics.py)!
+- [ ] Implement castling using the FEN notations instead, now I get a bug when
+  undoing a move as the king and rooks are considered to note have moved yet
+- [ ] Randomize the order of the moves that are used for minimax bot
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule
 - [ ] Implement deep learning bot
 
 What could be done:
+- [ ] minimax bot: multiprocessing (non-trivial as minimax is sequential...)
 - [ ] Make the graphics scaling with the window

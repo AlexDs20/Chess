@@ -2,11 +2,11 @@
 import numpy as np
 from tkinter import Tk, Canvas, PhotoImage
 
-from time import time
+import time
 
 from board import Board
 from pieces import Piece
-from bots.minimax import minimaxRoot
+from bots.minimax import minimaxRoot, minimaxPara
 
 
 class GraphicsInterface():
@@ -16,7 +16,12 @@ class GraphicsInterface():
         """
         self.playerWhite = 'minimax'
         self.playerBlack = 'minimax'
-        self.minimaxDepth = 2
+
+        """
+        Minimax properties
+        """
+        self.minimaxDepth = 3
+        self.minimaxPara = True
 
         """
         Window
@@ -92,10 +97,14 @@ class GraphicsInterface():
 
     def minimaxMove(self):
         maximize = True if self.board.player == 'white' else False
-        start = time()
-        val, move = minimaxRoot(self.board, self.minimaxDepth, float('-inf'), float('inf'),
-                                maximize)
-        end = time()
+        start = time.time()
+        if not self.minimaxPara:
+            val, move = minimaxRoot(self.board, self.minimaxDepth, float('-inf'), float('inf'),
+                                    maximize)
+        else:
+            val, move = minimaxPara(self.board, self.minimaxDepth, float('-inf'), float('inf'),
+                                    maximize)
+        end = time.time()
         print(end-start, val, move)
         self.makeMove(move)
 

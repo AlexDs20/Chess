@@ -1,29 +1,39 @@
+import concurrent.futures
+from itertools import repeat
+
+
+def movesEval(m, board, depth, alpha, beta, maximizing):
+    board.move(m[0], m[1])
+    evaluation = minimax(board, depth-1, alpha, beta, not maximizing)
+    board.undoMove()
+    return evaluation
+
+
+def minimaxPara(board, depth, alpha, beta, maximizing):
+    """
+    Run minimax in parallel at the root and alpha-beta pruning below
+    """
+    allMoves = board.getAllMoves()
+    b = repeat(board)
+    d = repeat(depth)
+    a = repeat(alpha)
+    bet = repeat(beta)
+    maxs = repeat(maximizing)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        evals = list(executor.map(movesEval, allMoves, b, d, a, bet, maxs))
+        index = evals.index(max(evals)) if maximizing else evals.index(min(evals))
+        return evals[index], allMoves[index]
+
+
 def minimaxRoot(board, depth, alpha, beta, maximizing):
-    """
-    TODO:   multiprocessing -> split the root branching between processes
-    """
-    if maximizing:
-        maxEval = float('-inf')
-        moveMax = []
-        for m in board.getAllMoves():
-            board.move(m[0], m[1])
-            evaluation = minimax(board, depth-1, alpha, beta, False)
-            board.undoMove()
-            maxEval = max(evaluation, maxEval)
-            if maxEval == evaluation:
-                moveMax = m
-        return maxEval, moveMax
-    else:
-        minEval = float('inf')
-        moveMin = []
-        for m in board.getAllMoves():
-            board.move(m[0], m[1])
-            evaluation = minimax(board, depth-1, alpha, beta, True)
-            board.undoMove()
-            minEval = min(evaluation, minEval)
-            if minEval == evaluation:
-                moveMin = m
-        return minEval, moveMin
+    bestEval = float('-inf') if maximizing else float('inf')
+    bestMove = []
+    for m in board.getAllMoves():
+        evaluation = movesEval(m, board, depth, alpha, beta, maximizing)
+        bestEval = max(evaluation, bestEval) if maximizing else min(evaluation, bestEval)
+        if bestEval == evaluation:
+            bestMove = m
+    return bestEval, bestMove
 
 
 def minimax(board, depth, alpha, beta, maximizing):
@@ -47,25 +57,14 @@ def minimax(board, depth, alpha, beta, maximizing):
             value = float('inf')
         return value
 
-    if maximizing:
-        maxEval = float('-inf')
-        for m in board.getAllMoves():
-            board.move(m[0], m[1])
-            evaluation = minimax(board, depth-1, alpha, beta, False)
-            board.undoMove()
-            maxEval = max(evaluation, maxEval)
-            alpha = max(alpha, maxEval)
-            if alpha >= beta:
-                break
-        return maxEval
-    else:
-        minEval = float('inf')
-        for m in board.getAllMoves():
-            board.move(m[0], m[1])
-            evaluation = minimax(board, depth-1, alpha, beta, True)
-            board.undoMove()
-            minEval = min(evaluation, minEval)
-            beta = min(beta, minEval)
-            if beta <= alpha:
-                break
-        return minEval
+    bestEval = float('-inf') if maximizing else float('inf')
+    for m in board.getAllMoves():
+        evaluation = movesEval(m, board, depth, alpha, beta, maximizing)
+        bestEval = max(evaluation, bestEval) if maximizing else min(evaluation, bestEval)
+        if maximizing:
+            alpha = max(alpha, bestEval)
+        else:
+            beta = min(beta, bestEval)
+        if alpha >= beta:
+            break
+    return bestEval

@@ -6,7 +6,7 @@ from time import time
 
 from board import Board
 from pieces import Piece
-from bots.minimax import minimax
+from bots.minimax import minimaxRoot
 
 
 class GraphicsInterface():
@@ -14,7 +14,7 @@ class GraphicsInterface():
         """
         Players: either: 'human', 'minimax'
         """
-        self.playerWhite = 'human'
+        self.playerWhite = 'minimax'
         self.playerBlack = 'minimax'
         self.minimaxDepth = 2
 
@@ -91,10 +91,10 @@ class GraphicsInterface():
         self.canvas.bind("<ButtonRelease-1>", self.released)
 
     def minimaxMove(self):
-        maximize = {'black': 'False', 'white': 'True'}
+        maximize = True if self.board.player == 'white' else False
         start = time()
-        val, move = minimax(self.board, self.minimaxDepth, float('-inf'), float('inf'),
-                            maximize[self.board.player])
+        val, move = minimaxRoot(self.board, self.minimaxDepth, float('-inf'), float('inf'),
+                                maximize)
         end = time()
         print(end-start, val, move)
         self.makeMove(move)
@@ -209,6 +209,7 @@ class GraphicsInterface():
             pass
         self.resetVariables()
         print(self.board.getFEN())
+        print('value: ', self.board.eval())
 
     def resetVariables(self):
         self.possibleMovesWidget = []

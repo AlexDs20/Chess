@@ -38,9 +38,10 @@ What is done:
   can/should still be improved but that can wait
 - [x] Implement castling using the FEN notations instead, now I get a bug when
   undoing a move as the king and rooks are considered to note have moved yet
+- [x] made minimax work
 
 What must be done:
-- [ ] minimax does not return the good moves... (for black at least)
+- [ ] minimax multiprocess at root
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule

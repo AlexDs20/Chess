@@ -19,6 +19,19 @@ or you can run it with python3 directly:
 python3 main.py
 ```
 
+
+## Variables:
+Some properties can be set in the graphics.py (not optimal, I know).
+Those are:
+
+Variables   |  Values             | Effect
+---------------------------------------------
+playerWhite | 'human', 'minimax'  |  Defines whether white is a human or a bot
+playerBlack | 'human', 'minimax'  |  Defines whether white is a human or a bot
+minimaxDepth| integer: 1, 2, 3, ... | Depth at which a minimax player would investigate (how many moves in advances it looks)
+minimaxPara | True or False       |  Whether to use a parallel implementation of minimax of not
+
+
 ## In Development
 What is done:
 - [x] Basic motion of the pieces
@@ -36,11 +49,11 @@ What is done:
 - [x] Randomize order moves used by minimax bot
 - [x] Castling using the FEN notations
 - [x] minimax multiprocess at root
+- [x] Stalemate
+- [x] 50 moves rule
 
 What must be done:
-- [ ] Stalemate
 - [ ] 3x repeated configuration = draw
-- [ ] 50 moves rule
 - [ ] Implement deep learning bot
 
 What could be done:

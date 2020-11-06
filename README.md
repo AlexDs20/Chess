@@ -25,7 +25,7 @@ Some properties can be set in the graphics.py (not optimal, I know).
 Those are:
 
 Variables   |  Values             | Effect
----------------------------------------------
+------------|---------------------|----------
 playerWhite | 'human', 'minimax'  |  Defines whether white is a human or a bot
 playerBlack | 'human', 'minimax'  |  Defines whether white is a human or a bot
 minimaxDepth| integer: 1, 2, 3, ... | Depth at which a minimax player would investigate (how many moves in advances it looks)

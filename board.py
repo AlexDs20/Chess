@@ -14,20 +14,22 @@ class Board:
     """
 
     def __init__(self, boardSize, fen):
+        self.player = []
+        self.otherPlayer = []
         self.enPassant = []
-        self.player = 'white'
-        self.otherPlayer = 'black' if self.player == 'white' else 'white'
         self.castling = 'KQkq'
         self.halfMoves = 0
-        self.fullMoves = 0
-        self.totalMoves = 0
+        self.fullMoves = 1
         self.mate = False
         self.stalemate = False
+        self.draw = False
+
         self.boardSize = boardSize
         self.array = np.empty([boardSize, boardSize], dtype=object)
         self.Configs = [fen]
         self.updateFENvariables()
         self.updateBoard()
+        self.updateGameStatus()
 
     def updateFENvariables(self):
         """
@@ -39,6 +41,7 @@ class Board:
             self.player = 'white'
         else:
             self.player = 'black'
+        self.otherPlayer = 'white' if self.player == 'black' else 'black'
         if len(enPassant) == 2:
             self.enPassant = [ord(enPassant[0])-97, int(enPassant[1])-1]
         else:
@@ -48,7 +51,7 @@ class Board:
 
     def updateBoard(self):
         """
-        Update the board for the given configuration
+        Update the board for the last state in in self.Configs
         """
         config = self.Configs[-1]
         self.array = np.empty([self.boardSize, self.boardSize], dtype=object)
@@ -90,20 +93,24 @@ class Board:
 
     def updateMoveCount(self, moveFrom, moveTo):
         """
-        50 moves rule:
-            If no capture or pawn moves, update half moves by 1
+        Update the move count for the different move rules
+            - 50 moves rule:
+                If no capture or pawn moves, update half moves by 1
+                After 50 moves -> draw
+            - full move:
+                Starts at 1 and increase after each time black plays
         """
-        if ((isinstance(self.array[moveTo[0], moveTo[1]], Piece) and
-            self.array[moveTo[0], moveTo[1]].colour != self.player) or
-                isinstance(self.array[moveFrom[0], moveFrom[1]], Pawn)):
+        squareTo = self.array[moveTo[0], moveTo[1]]
+        PieceMove = self.array[moveFrom[0], moveFrom[1]]
+
+        # If capture a piece or pawn move, reset counter
+        if isinstance(squareTo, Piece) or isinstance(PieceMove, Pawn):
             self.halfMoves = 0
         else:
             self.halfMoves += 1
 
         if self.player == 'black':
             self.fullMoves += 1
-
-        self.totalMoves += 1
 
     def pawnMove(self, moveFrom, moveTo):
         """
@@ -114,12 +121,14 @@ class Board:
             # promoteTo = input('Promote into a:')
             # self.promotePawn(moveTo, promoteTo)
             self.promotePawn(moveTo, 'Queen')
+
         # If en passant: capture pawn
         if moveTo in [self.enPassant]:
             if self.array[moveTo[0], moveTo[1]].colour == 'white':
                 self.array[moveTo[0], moveTo[1]-1] = None
             else:
                 self.array[moveTo[0], moveTo[1]+1] = None
+
         # If moves 2 squares: save where the next pawn can go
         self.enPassant = '-'
         if abs(moveTo[1]-moveFrom[1]) == 2:
@@ -174,6 +183,9 @@ class Board:
         if (moveTo in self.array[moveFrom[0], moveFrom[1]].possibleMoves() and
            self.player == self.array[moveFrom[0], moveFrom[1]].colour):
 
+            # 50 move rules and Full moves count
+            self.updateMoveCount(moveFrom, moveTo)
+
             # Change who will play next turn
             self.player = self.array[moveFrom[0], moveFrom[1]].otherColour
             self.otherPlayer = self.array[moveFrom[0], moveFrom[1]].colour
@@ -199,14 +211,20 @@ class Board:
             # update Castling rights
             self.updateCastlingVar(moveFrom, moveTo)
 
-            # 50 move rules and Full moves count
-            self.updateMoveCount(moveFrom, moveTo)
-
             # Save the new configuration
             self.Configs.append(self.getFEN())
 
-            # Check if checkmate (use self.player as it is that one who will play next turn)
-            self.mate, self.stalemate = self.checkmate(self.player)
+            # Update checkmate/stalemate/50 moves rule status:
+            self.updateGameStatus()
+
+    def updateGameStatus(self):
+        """
+        Update the variables related to checkmate, stalemate and 50moves rule (halfmoves)
+        """
+        self.mate, self.stalemate = self.checkmate(self.player)
+
+        if self.halfMoves == 100:
+            self.draw = True
 
     def undoMove(self):
         """
@@ -215,6 +233,7 @@ class Board:
         self.Configs.pop()
         self.updateFENvariables()
         self.updateBoard()
+        self.updateGameStatus()
 
     def promotePawn(self, coord, promoteTo):
         """
@@ -284,6 +303,10 @@ class Board:
                 if isinstance(square, Piece) and square.colour == colour and square.possibleMoves():
                     noMoves = False
                     break
+            # Also break out of parent loop if needed
+            if not noMoves:
+                break
+
         checkmate, stalemate = False, False
         if noMoves and check:
             checkmate = True

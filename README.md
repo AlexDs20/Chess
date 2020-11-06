@@ -31,17 +31,13 @@ What is done:
 - [x] Make svg files for each of the pieces
 - [x] En passant
 - [x] Castle
-- [x] Black and white must play alternatively
+- [x] Black and white play alternatively
 - [x] minimax bot with alpha-beta pruning
-- [x] Randomize the order of the moves that are passed to minimax bot
-- [x] Better implement the playing interface (graphics.py)! Some things
-  can/should still be improved but that can wait
-- [x] Implement castling using the FEN notations instead, now I get a bug when
-  undoing a move as the king and rooks are considered to note have moved yet
-- [x] made minimax work
+- [x] Randomize order moves used by minimax bot
+- [x] Castling using the FEN notations
+- [x] minimax multiprocess at root
 
 What must be done:
-- [ ] minimax multiprocess at root
 - [ ] Stalemate
 - [ ] 3x repeated configuration = draw
 - [ ] 50 moves rule

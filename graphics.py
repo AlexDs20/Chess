@@ -14,13 +14,13 @@ class GraphicsInterface():
         """
         Players: either: 'human', 'minimax'
         """
-        self.playerWhite = 'minimax'
-        self.playerBlack = 'minimax'
+        self.playerWhite = 'human'
+        self.playerBlack = 'human'
 
         """
         Minimax properties
         """
-        self.minimaxDepth = 3
+        self.minimaxDepth = 4
         self.minimaxPara = True
 
         """
@@ -157,16 +157,23 @@ class GraphicsInterface():
                   x1, y1+r, x1, y1+r, x1, y1)
         return self.canvas.create_polygon(points, **kwargs, smooth=True)
 
-    def showCheckmate(self):
+    def show(self, state):
         rw = 4 * self.squareSize
         rh = 1.5 * self.squareSize
         bgColour = "#ACA7A6"
         w = (self.width // 2) - rw // 2
         h = (self.height // 2) - rh // 2
 
+        if state == 'mate':
+            text = f'{self.selectedPiece.colour} won!'.title()
+        elif state == 'stalemate':
+            text = 'Stalemate!'.title()
+        elif state == 'draw':
+            text = 'Draw!'.title()
+
         self.round_rectangle(w, h, w + rw, h + rh, r=self.squareSize // 2, fill=bgColour)
         self.canvas.create_text(self.width // 2, self.height // 2,
-                                text=f'{self.selectedPiece.colour} won!'.title(),
+                                text=text,
                                 font=("Helvetica", 40))
 
     def showPossibleMoves(self):
@@ -211,11 +218,14 @@ class GraphicsInterface():
         else:
             xBoard, yBoard = self.coordToPixel(m[0][0], m[0][1])
         self.movePiecesGraphics([xBoard, yBoard], m)
-        checkmate, stalemate = self.board.checkmate(self.board.player)
-        if checkmate:
-            self.showCheckmate()
-        elif stalemate:
-            pass
+
+        if self.board.mate:
+            self.show('mate')
+        elif self.board.stalemate:
+            self.show('stalemate')
+        elif self.board.draw:
+            self.show('draw')
+
         self.resetVariables()
         print(self.board.getFEN())
         print('value: ', self.board.eval())

@@ -1,3 +1,4 @@
 ML_data/
 __pycache__/
 read/
+.venv/

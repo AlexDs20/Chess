@@ -15,12 +15,12 @@ class GraphicsInterface():
         Players: either: 'human', 'minimax'
         """
         self.playerWhite = 'human'
-        self.playerBlack = 'human'
+        self.playerBlack = 'minimax'
 
         """
         Minimax properties
         """
-        self.minimaxDepth = 4
+        self.minimaxDepth = 3
         self.minimaxPara = True
 
         """

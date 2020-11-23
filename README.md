@@ -1,6 +1,8 @@
 # Chess
 A chess game in python
 
+![Graphical interface of the game. White is a human and black is a bot using minimax.](https://github.com/AlexDs20/Chess/tree/dev/gif/Chess-human-vs-bot.gif)
+
 # How to play you ask?
 **1. Clone the project:**
 ```
